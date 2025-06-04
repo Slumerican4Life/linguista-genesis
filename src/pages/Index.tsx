@@ -1,12 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Globe, Bot, Shield, Sparkles, ThumbsUp, ThumbsDown, Download, Copy, Settings, CreditCard, BarChart3 } from 'lucide-react';
+import { Upload, FileText, Globe, Bot, Shield, Sparkles, Download, Copy, Settings, CreditCard, BarChart3, LogIn } from 'lucide-react';
 import { AgentStatus } from '@/components/AgentStatus';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { ToneSelector } from '@/components/ToneSelector';
@@ -15,6 +14,11 @@ import { FeedbackPanel } from '@/components/FeedbackPanel';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PricingPlans } from '@/components/PricingPlans';
 import { UsageDashboard } from '@/components/UsageDashboard';
+import { AuthModal } from '@/components/AuthModal';
+import { SettingsPanel } from '@/components/SettingsPanel';
+import { LyraOverlay } from '@/components/LyraOverlay';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
@@ -24,19 +28,35 @@ const Index = () => {
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState('translate');
   const [currentPlan, setCurrentPlan] = useState('free');
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [agentProgress, setAgentProgress] = useState<Record<string, 'idle' | 'processing' | 'complete'>>({
     lyra: 'idle',
     syntax: 'idle',
     voca: 'idle',
-    prism: 'idle'
+    prism: 'idle',
+    security: 'idle'
   });
+
+  // Authentication handling
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Mock usage data
   const usageData = {
     wordsUsed: 387,
-    wordsLimit: 500,
+    wordsLimit: currentPlan === 'free' ? 500 : currentPlan === 'pro' ? 100000 : Infinity,
     languagesUsed: 2,
-    languagesLimit: 2,
+    languagesLimit: currentPlan === 'free' ? 5 : currentPlan === 'pro' ? 30 : 40,
     currentPlan: currentPlan,
     daysUntilReset: 15,
     translationsToday: 12
@@ -48,19 +68,19 @@ const Index = () => {
     setIsTranslating(true);
     setTranslations({});
     
-    // Simulate agent pipeline
-    const agents = ['prism', 'syntax', 'voca', 'lyra'];
+    // Simulate agent pipeline - updated with Security agent
+    const agents = ['security', 'prism', 'syntax', 'voca', 'lyra'];
     
     for (const agent of agents) {
       setAgentProgress(prev => ({ ...prev, [agent]: 'processing' }));
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+      await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 800));
       setAgentProgress(prev => ({ ...prev, [agent]: 'complete' }));
     }
     
     // Simulate translations
     const mockTranslations: Record<string, string> = {};
     selectedLanguages.forEach(lang => {
-      mockTranslations[lang] = `[${selectedTone.toUpperCase()}] ${inputText} (translated to ${lang})`;
+      mockTranslations[lang] = `[${selectedTone.toUpperCase()}] ${inputText} (contextually translated to ${lang})`;
     });
     
     setTranslations(mockTranslations);
@@ -73,9 +93,36 @@ const Index = () => {
     // Here you would integrate with Stripe
   };
 
+  const handleAuthSuccess = () => {
+    console.log('Authentication successful');
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  // Free tier ads component
+  const AdBanner = ({ position }: { position: 'top' | 'middle' | 'bottom' }) => {
+    if (currentPlan !== 'free') return null;
+    
+    return (
+      <div className={`bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-center ${
+        position === 'top' ? 'mb-8' : position === 'middle' ? 'my-8' : 'mt-8'
+      }`}>
+        <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+          📢 Remove ads and unlock premium features
+        </p>
+        <Button size="sm" onClick={() => setActiveTab('pricing')} className="bg-amber-600 hover:bg-amber-700">
+          Upgrade Now
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
-      {/* Premium gradient overlay for dark mode */}
+      {/* Premium gradient overlay */}
       <div className="fixed inset-0 bg-gradient-to-br from-background via-background/95 to-background opacity-90 pointer-events-none" />
       <div className="fixed inset-0 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-purple-500/5 pointer-events-none" />
       
@@ -101,17 +148,37 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               <Badge variant="secondary" className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-700 dark:text-purple-300 px-3 py-1">
                 <Bot className="w-3 h-3 mr-1" />
-                4 AI Agents Active
+                5 AI Agents Active
               </Badge>
               <Badge variant="outline" className="px-3 py-1 font-medium">
                 <Shield className="w-3 h-3 mr-1" />
                 {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan
               </Badge>
+              {user ? (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">
+                    Welcome, {user.email}
+                  </span>
+                  <Button variant="outline" size="sm" onClick={handleSignOut}>
+                    Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={() => setIsAuthModalOpen(true)} size="sm">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </Button>
+              )}
               <ThemeToggle />
             </div>
           </div>
         </div>
       </header>
+
+      {/* Free tier top ad */}
+      <div className="container mx-auto px-4">
+        <AdBanner position="top" />
+      </div>
 
       <main className="relative z-10 container mx-auto px-4 py-8">
         {/* Navigation Tabs */}
@@ -163,14 +230,19 @@ const Index = () => {
                     <span>Content Input</span>
                   </CardTitle>
                   <CardDescription>
-                    Paste your content or upload a file for translation
+                    Paste your content, upload a file, or enter a URL for translation
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   <Tabs defaultValue="text" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-3">
                       <TabsTrigger value="text">Text Input</TabsTrigger>
-                      <TabsTrigger value="file">File Upload</TabsTrigger>
+                      <TabsTrigger value="file" disabled={currentPlan === 'free'}>
+                        File Upload {currentPlan === 'free' && '(Premium+)'}
+                      </TabsTrigger>
+                      <TabsTrigger value="url" disabled={currentPlan === 'free'}>
+                        URL Crawler {currentPlan === 'free' && '(Premium+)'}
+                      </TabsTrigger>
                     </TabsList>
                     <TabsContent value="text" className="space-y-4">
                       <Textarea
@@ -187,10 +259,26 @@ const Index = () => {
                     <TabsContent value="file" className="space-y-4">
                       <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 text-center hover:border-purple-400 dark:hover:border-purple-500 transition-colors cursor-pointer bg-muted/20">
                         <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-2">Drop your CSV file here or click to browse</p>
-                        <p className="text-sm text-muted-foreground/70">Supports CSV, TXT files up to 10MB</p>
-                        <Button variant="outline" className="mt-4">
+                        <p className="text-muted-foreground mb-2">Drop your file here or click to browse</p>
+                        <p className="text-sm text-muted-foreground/70">Supports CSV, TXT, DOCX files up to 10MB</p>
+                        <Button variant="outline" className="mt-4" disabled={currentPlan === 'free'}>
                           Choose File
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="url" className="space-y-4">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium">Website or Social Media URL</label>
+                          <input
+                            type="url"
+                            placeholder="https://example.com or https://twitter.com/user/status/..."
+                            className="w-full p-3 border rounded-lg mt-2"
+                            disabled={currentPlan === 'free'}
+                          />
+                        </div>
+                        <Button variant="outline" className="w-full" disabled={currentPlan === 'free'}>
+                          Extract Content
                         </Button>
                       </div>
                     </TabsContent>
@@ -261,6 +349,9 @@ const Index = () => {
               </Card>
             </div>
 
+            {/* Middle ad for free tier */}
+            <AdBanner position="middle" />
+
             {/* Feedback Panel */}
             {Object.keys(translations).length > 0 && (
               <FeedbackPanel translations={translations} />
@@ -285,20 +376,26 @@ const Index = () => {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <Card className="max-w-2xl mx-auto">
-              <CardHeader>
-                <CardTitle>Settings</CardTitle>
-                <CardDescription>
-                  Manage your account preferences and settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Settings panel coming soon...</p>
-              </CardContent>
-            </Card>
+            <SettingsPanel 
+              currentPlan={currentPlan}
+              onUpgrade={() => setActiveTab('pricing')}
+            />
           </TabsContent>
         </Tabs>
+
+        {/* Bottom ad for free tier */}
+        <AdBanner position="bottom" />
       </main>
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      {/* Lyra Overlay */}
+      <LyraOverlay />
     </div>
   );
 };

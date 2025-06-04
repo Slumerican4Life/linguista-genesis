@@ -25,54 +25,36 @@ const plans: PricingPlan[] = [
     name: 'Free Tier',
     price: '$0',
     period: 'forever',
-    description: 'Perfect for trying out PolyLingua',
+    description: 'Perfect for trying out Linguista',
     wordLimit: '500 words/day',
-    languages: 'Up to 2 languages',
+    languages: '5 languages',
     features: [
       '500 words per day',
-      'Up to 2 language exports',
+      'Up to 5 languages',
       'Basic translation quality',
-      'Watermarked exports',
-      'Community support'
+      'Ads displayed (top, middle, bottom)',
+      'Community support',
+      'Basic tone settings'
     ],
     icon: Sparkles,
     gradient: 'from-gray-400 to-gray-600'
   },
   {
-    id: 'starter',
-    name: 'Starter Plan',
-    price: '$9.99',
-    period: '/month',
-    description: 'Great for individuals and small projects',
-    wordLimit: '10K words/month',
-    languages: 'Up to 10 languages',
-    features: [
-      '10,000 words per month',
-      'Up to 10 language exports',
-      'Custom tone settings',
-      'Save preferences',
-      'Download without watermark',
-      'Basic email support'
-    ],
-    icon: Zap,
-    gradient: 'from-blue-500 to-cyan-500'
-  },
-  {
     id: 'pro',
-    name: 'Pro Plan',
-    price: '$29',
+    name: 'Premium',
+    price: '$19.99',
     period: '/month',
-    description: 'Perfect for businesses and professionals',
+    description: 'Great for professionals and content creators',
     wordLimit: '100K words/month',
-    languages: '40+ languages',
+    languages: '30+ languages',
     popular: true,
     features: [
       '100,000 words per month',
-      'Full access to 40+ languages',
-      'Advanced AI agents (Poly, Vera, Tala)',
-      'Local vocabulary injection',
-      'Translation templates',
-      'API access',
+      'Access to 30+ languages',
+      'Replace-word editor',
+      'File upload (CSV, TXT, DOCX)',
+      'Custom tone settings',
+      'AI memory & learning',
       'Priority email support'
     ],
     icon: Crown,
@@ -80,18 +62,18 @@ const plans: PricingPlan[] = [
   },
   {
     id: 'agency',
-    name: 'Agency Plan',
-    price: '$79',
+    name: 'Business',
+    price: '$59.99',
     period: '/month',
     description: 'For teams and agencies with high-volume needs',
-    wordLimit: '1M words/month',
-    languages: 'Unlimited access',
+    wordLimit: 'Unlimited words',
+    languages: 'All 40+ languages',
     features: [
-      '1,000,000 words per month',
-      'Unlimited projects & collaboration',
-      'Auto-detect language',
-      'Multi-format exports',
-      'Feedback memory & learning',
+      'Unlimited words per month',
+      'All 40+ languages & dialects',
+      'Team collaboration (5 members)',
+      'Custom glossaries',
+      'Analytics & insights',
       'White-label options',
       'Dedicated account manager'
     ],
@@ -117,7 +99,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {plans.map((plan) => {
           const IconComponent = plan.icon;
           const isCurrentPlan = currentPlan === plan.id;
@@ -191,7 +173,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
         })}
       </div>
 
-      {/* Credits Option */}
+      {/* One-Time Credits Option */}
       <div className="mt-12 text-center">
         <Card className="max-w-2xl mx-auto bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
           <CardHeader>
