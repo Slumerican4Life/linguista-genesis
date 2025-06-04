@@ -1,73 +1,101 @@
-# Welcome to your Lovable project
 
-## Project info
+<div align="center">
+  <img src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" alt="Linguista Logo" width="120" height="120" />
+  
+  # Linguista
+  ### by Neuronix ~ Language Rewired
+  
+  **AI-Powered Contextual Translation Platform**
+  
+  Transform your content for global audiences with culturally-aware translations that capture tone, humor, and local nuances—not just literal word conversion.
+  
+  [![Deploy with Lovable](https://lovable.dev/deploy-button.svg)](https://lovable.dev/projects/37d442fb-04ac-4adf-9e46-4dcbef9cf99d)
+</div>
 
-**URL**: https://lovable.dev/projects/37d442fb-04ac-4adf-9e46-4dcbef9cf99d
+---
 
-## How can I edit this code?
+## 🧠 What Makes Linguista Different
 
-There are several ways of editing your application.
+Unlike traditional translation tools, Linguista employs a team of specialized AI agents that work together to deliver contextually intelligent translations:
 
-**Use Lovable**
+- **Lyra** - Customer support and coordination
+- **Syntax** - Linguistics and context matching  
+- **Voca** - Dictionary and tone engine
+- **Prism** - Web and social media content analysis
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/37d442fb-04ac-4adf-9e46-4dcbef9cf99d) and start prompting.
+## ✨ Key Features
 
-Changes made via Lovable will be committed automatically to this repo.
+- 🌍 **40+ Languages** - Support for major world languages with regional dialects
+- 🎭 **Tone Adaptation** - Serious, sarcastic, edgy, formal, poetic, and more
+- 🔄 **Editable Translations** - Click any word to regenerate or customize
+- 📁 **File Support** - Upload CSV, TXT, and DOCX files
+- 🧠 **AI Memory** - Learns your preferred translations and style
+- 🔐 **Secure** - Built-in security filtering and prompt abuse protection
 
-**Use your preferred IDE**
+## 💳 Pricing Plans
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+| Feature | Free | Premium | Business |
+|---------|------|---------|----------|
+| **Words/Month** | 500/day | 100,000 | Unlimited |
+| **Languages** | 5 | 30+ | All 40 |
+| **File Upload** | ❌ | ✅ | ✅ |
+| **Replace-Word Editor** | ❌ | ✅ | ✅ |
+| **Team Members** | 1 | 1 | 5 |
+| **Lyra AI Support** | Basic | Full | Advanced |
+| **Analytics** | ❌ | ❌ | ✅ |
+| **Custom Glossaries** | ❌ | ❌ | ✅ |
+| **Price** | Free | $19.99/mo | $59.99/mo |
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Getting Started
 
-Follow these steps:
+1. **Sign Up** - Create your account with email or phone
+2. **Choose Your Languages** - Select source and target languages
+3. **Set Your Tone** - Pick the style that matches your content
+4. **Translate** - Paste text or upload files for instant translation
+5. **Customize** - Edit any word or phrase to perfect your translation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 🛠 Technology Stack
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- **Frontend**: React + TypeScript + Tailwind CSS
+- **Backend**: Supabase (Auth, Database, Storage)
+- **AI**: OpenAI GPT-4o with custom agent orchestration
+- **Payments**: Stripe integration
+- **Deployment**: Lovable platform
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🔧 Development
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+This project is built with Lovable, an AI-powered web application development platform.
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## 🌐 Domain
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Production site: [linguista.slumbucket.xyz](https://linguista.slumbucket.xyz)
 
-**Use GitHub Codespaces**
+## 📞 Support
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Need help? Our AI assistant Lyra is available 24/7 through the chat overlay, or reach out to our team:
 
-## What technologies are used for this project?
+- **Discord**: [Neuronix Community](https://discord.gg/neuronix)
+- **Email**: support@neuronix.ai
+- **Documentation**: [docs.linguista.ai](https://docs.linguista.ai)
 
-This project is built with:
+## 🏢 About Neuronix
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Linguista is proudly developed by Neuronix, a leader in AI-powered language technology. We're dedicated to breaking down language barriers and enabling global communication through intelligent, contextual translation.
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/37d442fb-04ac-4adf-9e46-4dcbef9cf99d) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+<div align="center">
+  <p><strong>Linguista - Language Rewired by AI</strong></p>
+  <p>Made with ❤️ by the Neuronix team</p>
+</div>
