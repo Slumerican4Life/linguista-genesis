@@ -137,7 +137,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
           </TabsTrigger>
         </TabsList>
 
-        {/* Profile Settings */}
         <TabsContent value="profile" className="space-y-6">
           <Card>
             <CardHeader>
@@ -215,7 +214,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
           </Card>
         </TabsContent>
 
-        {/* Security Settings */}
         <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
@@ -306,7 +304,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
           </Card>
         </TabsContent>
 
-        {/* Translation Settings */}
         <TabsContent value="translation" className="space-y-6">
           <Card>
             <CardHeader>
@@ -440,7 +437,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
           </Card>
         </TabsContent>
 
-        {/* Notifications */}
         <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
@@ -508,7 +504,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
           </Card>
         </TabsContent>
 
-        {/* Billing */}
         <TabsContent value="billing" className="space-y-6">
           <Card>
             <CardHeader>
@@ -571,13 +566,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
                       Update Payment Method
                     </Button>
                   </div>
-                </>
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Team Settings (Business only) */}
         <TabsContent value="team" className="space-y-6">
           <Card>
             <CardHeader>
