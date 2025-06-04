@@ -32,6 +32,17 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade
     return num.toString();
   };
 
+  // Get plan display name
+  const getPlanDisplayName = (plan: string) => {
+    switch (plan) {
+      case 'free': return 'Free';
+      case 'professional': return 'Professional';
+      case 'premium': return 'Premium';
+      case 'business': return 'Business';
+      default: return plan.charAt(0).toUpperCase() + plan.slice(1);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -43,7 +54,7 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade
           variant={usage.currentPlan === 'free' ? 'secondary' : 'default'}
           className="text-sm font-semibold px-3 py-1"
         >
-          {usage.currentPlan.charAt(0).toUpperCase() + usage.currentPlan.slice(1)} Plan
+          {getPlanDisplayName(usage.currentPlan)} Plan
         </Badge>
       </div>
 

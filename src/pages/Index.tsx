@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,12 +50,15 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Mock usage data
+  // Mock usage data - updated for new plan structure
   const usageData = {
     wordsUsed: 387,
-    wordsLimit: currentPlan === 'free' ? 500 : currentPlan === 'pro' ? 100000 : Infinity,
+    wordsLimit: currentPlan === 'free' ? 500 : 
+               currentPlan === 'professional' ? 100000 : Infinity,
     languagesUsed: 2,
-    languagesLimit: currentPlan === 'free' ? 5 : currentPlan === 'pro' ? 30 : 40,
+    languagesLimit: currentPlan === 'free' ? 5 : 
+                   currentPlan === 'professional' ? 30 : 
+                   currentPlan === 'premium' ? 35 : 40,
     currentPlan: currentPlan,
     daysUntilReset: 15,
     translationsToday: 12
@@ -102,19 +104,22 @@ const Index = () => {
     setUser(null);
   };
 
-  // Free tier ads component
+  // Free tier ads component - updated for new plan structure
   const AdBanner = ({ position }: { position: 'top' | 'middle' | 'bottom' }) => {
-    if (currentPlan !== 'free') return null;
+    // Show all ads for free tier, header only for professional, none for premium/business
+    if (currentPlan === 'premium' || currentPlan === 'business') return null;
+    if (currentPlan === 'professional' && position !== 'top') return null;
+    if (currentPlan !== 'free' && currentPlan !== 'professional') return null;
     
     return (
       <div className={`bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-center ${
         position === 'top' ? 'mb-8' : position === 'middle' ? 'my-8' : 'mt-8'
       }`}>
         <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
-          📢 Remove ads and unlock premium features
+          📢 {currentPlan === 'professional' ? 'Upgrade to Premium to remove all ads' : 'Remove ads and unlock premium features'}
         </p>
         <Button size="sm" onClick={() => setActiveTab('pricing')} className="bg-amber-600 hover:bg-amber-700">
-          Upgrade Now
+          {currentPlan === 'professional' ? 'Upgrade to Premium' : 'Upgrade Now'}
         </Button>
       </div>
     );

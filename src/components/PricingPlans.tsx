@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Zap, Crown, Building2, Sparkles } from 'lucide-react';
+import { Check, Zap, Crown, Building2, Sparkles, Shield } from 'lucide-react';
 
 interface PricingPlan {
   id: string;
@@ -17,6 +17,8 @@ interface PricingPlan {
   gradient: string;
   wordLimit: string;
   languages: string;
+  lyraVersion: string;
+  ads: string;
 }
 
 const plans: PricingPlan[] = [
@@ -28,54 +30,90 @@ const plans: PricingPlan[] = [
     description: 'Perfect for trying out Linguista',
     wordLimit: '500 words/day',
     languages: '5 languages',
+    lyraVersion: 'Basic Lyra',
+    ads: '3 Ads (All)',
     features: [
       '500 words per day',
       'Up to 5 languages',
       'Basic translation quality',
       'Ads displayed (top, middle, bottom)',
       'Community support',
-      'Basic tone settings'
+      'Basic tone settings',
+      'Limited brain, no memory'
     ],
     icon: Sparkles,
     gradient: 'from-gray-400 to-gray-600'
   },
   {
-    id: 'pro',
-    name: 'Premium',
+    id: 'professional',
+    name: 'Professional',
     price: '$19.99',
     period: '/month',
     description: 'Great for professionals and content creators',
     wordLimit: '100K words/month',
     languages: '30+ languages',
-    popular: true,
+    lyraVersion: 'Intermediate Lyra',
+    ads: '1 Header Ad',
     features: [
       '100,000 words per month',
       'Access to 30+ languages',
-      'Replace-word editor',
-      'File upload (CSV, TXT, DOCX)',
-      'Custom tone settings',
-      'AI memory & learning',
-      'Priority email support'
+      '2FA security',
+      'Memory-lite functionality',
+      'Partial overlay access',
+      'Token system features',
+      'Priority email support',
+      'Reduced ads (header only)'
+    ],
+    icon: Shield,
+    gradient: 'from-blue-500 to-indigo-500'
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    price: '$29.99',
+    period: '/month',
+    description: 'Full-featured plan with complete AI capabilities',
+    wordLimit: 'Unlimited words',
+    languages: '35+ languages + dialects',
+    lyraVersion: 'Full Lyra',
+    ads: '❌ No Ads',
+    popular: true,
+    features: [
+      'Unlimited words per month',
+      'All 35+ languages & dialects',
+      'Local slang/dialect AI (Lexa)',
+      'File uploads (CSV, TXT, DOCX)',
+      'Word replace tool',
+      'Full Lyra overlay',
+      'Memory-enabled AI',
+      '"Preferred flavor" customization',
+      'AI gifting functionality',
+      'No advertisements'
     ],
     icon: Crown,
     gradient: 'from-purple-500 to-pink-500'
   },
   {
-    id: 'agency',
+    id: 'business',
     name: 'Business',
     price: '$59.99',
     period: '/month',
-    description: 'For teams and agencies with high-volume needs',
+    description: 'For teams and agencies with advanced needs',
     wordLimit: 'Unlimited words',
     languages: 'All 40+ languages',
+    lyraVersion: 'Advanced Lyra',
+    ads: '❌ No Ads',
     features: [
-      'Unlimited words per month',
-      'All 40+ languages & dialects',
+      'All Premium features included',
       'Team collaboration (5 members)',
+      'Traffic learning capabilities',
+      'Advanced upload support',
       'Custom glossaries',
       'Analytics & insights',
       'White-label options',
-      'Dedicated account manager'
+      'Advanced personalization',
+      'Dedicated account manager',
+      'Priority support'
     ],
     icon: Building2,
     gradient: 'from-emerald-500 to-teal-500'
@@ -99,7 +137,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {plans.map((plan) => {
           const IconComponent = plan.icon;
           const isCurrentPlan = currentPlan === plan.id;
@@ -124,32 +162,38 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
                   <IconComponent className="w-8 h-8 text-white" />
                 </div>
                 
-                <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+                <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
                 <CardDescription className="text-muted-foreground">
                   {plan.description}
                 </CardDescription>
                 
                 <div className="flex items-baseline justify-center mt-4">
-                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                  <span className="text-3xl font-bold text-foreground">{plan.price}</span>
                   <span className="text-muted-foreground ml-1">{plan.period}</span>
                 </div>
 
                 <div className="flex flex-col gap-2 mt-4">
-                  <Badge variant="secondary" className="text-sm">
+                  <Badge variant="secondary" className="text-xs">
                     {plan.wordLimit}
                   </Badge>
-                  <Badge variant="outline" className="text-sm">
+                  <Badge variant="outline" className="text-xs">
                     {plan.languages}
+                  </Badge>
+                  <Badge variant="default" className="text-xs">
+                    {plan.lyraVersion}
+                  </Badge>
+                  <Badge variant={plan.ads.includes('❌') ? 'destructive' : 'secondary'} className="text-xs">
+                    {plan.ads}
                   </Badge>
                 </div>
               </CardHeader>
 
               <CardContent className="space-y-4">
-                <ul className="space-y-3">
+                <ul className="space-y-2">
                   {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-muted-foreground">{feature}</span>
+                    <li key={index} className="flex items-start space-x-2">
+                      <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-xs text-muted-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
