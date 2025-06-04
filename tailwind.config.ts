@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,29 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Custom colors for our translation platform
+				'ai-blue': {
+					50: '#eff6ff',
+					100: '#dbeafe',
+					500: '#3b82f6',
+					600: '#2563eb',
+					700: '#1d4ed8',
+					900: '#1e3a8a'
+				},
+				'ai-purple': {
+					50: '#faf5ff',
+					100: '#f3e8ff',
+					500: '#8b5cf6',
+					600: '#7c3aed',
+					700: '#6d28d9',
+					900: '#4c1d95'
+				},
+				'agent-lexi': '#10b981', // emerald for extraction
+				'agent-poly': '#3b82f6', // blue for main translation
+				'agent-vera': '#f59e0b', // amber for cultural adaptation
+				'agent-tala': '#8b5cf6', // purple for tone adjustment
+				'agent-zane': '#ef4444'  // red for security filtering
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +107,32 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'slide-in': {
+					'0%': { transform: 'translateX(-100%)' },
+					'100%': { transform: 'translateX(0)' }
+				},
+				'pulse-glow': {
+					'0%, 100%': { boxShadow: '0 0 0 0 rgba(59, 130, 246, 0.7)' },
+					'50%': { boxShadow: '0 0 0 10px rgba(59, 130, 246, 0)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.6s ease-out',
+				'slide-in': 'slide-in 0.5s ease-out',
+				'pulse-glow': 'pulse-glow 2s infinite'
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+				'ai-gradient': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+				'neural-pattern': 'radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%)'
 			}
 		}
 	},
