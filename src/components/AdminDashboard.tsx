@@ -11,11 +11,15 @@ import { Users, Search, Gift, Upload, FileText, Activity, Crown, Shield } from '
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
+
+type UserRole = Database['public']['Enums']['app_role'];
+type SubscriptionTier = Database['public']['Enums']['subscription_tier'];
 
 export const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [giftPlan, setGiftPlan] = useState('');
+  const [giftPlan, setGiftPlan] = useState<SubscriptionTier>('professional');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
 
@@ -69,7 +73,7 @@ export const AdminDashboard = () => {
 
   // Update user role mutation
   const updateUserRole = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: string }) => {
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: UserRole }) => {
       const { error } = await supabase
         .from('profiles')
         .update({ role: newRole })
@@ -96,7 +100,7 @@ export const AdminDashboard = () => {
 
   // Gift subscription mutation
   const giftSubscription = useMutation({
-    mutationFn: async ({ userId, planId }: { userId: string; planId: string }) => {
+    mutationFn: async ({ userId, planId }: { userId: string; planId: SubscriptionTier }) => {
       // Create subscription record
       const { error } = await supabase
         .from('subscriptions')
@@ -122,7 +126,7 @@ export const AdminDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-logs'] });
       toast.success('Subscription gifted successfully');
       setSelectedUserId(null);
-      setGiftPlan('');
+      setGiftPlan('professional');
     },
     onError: (error) => {
       toast.error(`Failed to gift subscription: ${error.message}`);
@@ -179,7 +183,7 @@ export const AdminDashboard = () => {
     }
   };
 
-  const getRoleIcon = (role: string) => {
+  const getRoleIcon = (role: UserRole) => {
     switch (role) {
       case 'owner': return <Crown className="w-4 h-4 text-yellow-500" />;
       case 'manager': return <Shield className="w-4 h-4 text-blue-500" />;
@@ -187,7 +191,7 @@ export const AdminDashboard = () => {
     }
   };
 
-  const getPlanBadgeColor = (tier: string) => {
+  const getPlanBadgeColor = (tier: SubscriptionTier) => {
     switch (tier) {
       case 'business': return 'bg-purple-600';
       case 'premium': return 'bg-blue-600';
@@ -276,7 +280,7 @@ export const AdminDashboard = () => {
                               {getRoleIcon(user.role)}
                               <Select
                                 value={user.role}
-                                onValueChange={(newRole) => 
+                                onValueChange={(newRole: UserRole) => 
                                   updateUserRole.mutate({ userId: user.id, newRole })
                                 }
                               >
@@ -328,7 +332,7 @@ export const AdminDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Select value={giftPlan} onValueChange={setGiftPlan}>
+                <Select value={giftPlan} onValueChange={(value: SubscriptionTier) => setGiftPlan(value)}>
                   <SelectTrigger className="bg-green-900/20 border-green-500/30 text-white">
                     <SelectValue placeholder="Select plan to gift" />
                   </SelectTrigger>

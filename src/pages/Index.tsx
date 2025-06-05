@@ -52,14 +52,14 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch user profile with role
+  // Fetch user profile with role and subscriptions
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile', user?.id],
     queryFn: async () => {
       if (!user) return null;
       const { data } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, subscriptions(*)')
         .eq('id', user.id)
         .single();
       return data;
@@ -85,13 +85,16 @@ const Index = () => {
         wordsLimit: 500, // Default free tier limit
         languagesUsed: 2,
         languagesLimit: 5,
-        currentPlan: 'free',
+        currentPlan: userProfile?.subscriptions?.[0]?.tier || 'free',
         daysUntilReset: 15,
         translationsToday: data?.requests_made || 0
       };
     },
     enabled: !!user,
   });
+
+  // Get current plan from user profile
+  const currentPlan = userProfile?.subscriptions?.[0]?.tier || 'free';
 
   const handleTranslate = async () => {
     if (!inputText.trim() || selectedLanguages.length === 0) return;
@@ -455,14 +458,14 @@ const Index = () => {
           <TabsContent value="pricing">
             <PricingPlans 
               onSelectPlan={handleSelectPlan}
-              currentPlan={userProfile?.subscriptions?.[0]?.tier || 'free'}
+              currentPlan={currentPlan}
             />
           </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings">
             <SettingsPanel 
-              currentPlan={userProfile?.subscriptions?.[0]?.tier || 'free'}
+              currentPlan={currentPlan}
               onUpgrade={() => setActiveTab('pricing')}
             />
           </TabsContent>
