@@ -157,6 +157,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
     );
   }
 
+  // Safe access to verification fields that may not exist yet
+  const emailVerified = !!(userProfile as any)?.email_verified_at;
+  const phoneVerified = !!(userProfile as any)?.phone_verified_at;
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="profile" className="w-full">
@@ -285,13 +289,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
         <TabsContent value="security" className="space-y-6">
           <EmailVerification
             email={userProfile?.email || ''}
-            isVerified={!!userProfile?.email_verified_at}
+            isVerified={emailVerified}
             onVerificationComplete={handleVerificationComplete}
           />
           
           <PhoneVerification
             phoneNumber={phoneNumber}
-            isVerified={!!userProfile?.phone_verified_at}
+            isVerified={phoneVerified}
             onVerificationComplete={handleVerificationComplete}
           />
         </TabsContent>

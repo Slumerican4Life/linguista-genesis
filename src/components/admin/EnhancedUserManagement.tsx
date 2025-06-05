@@ -49,11 +49,15 @@ export const EnhancedUserManagement = () => {
       // Filter by verification status if needed
       if (selectedFilter !== 'all') {
         return data?.filter(user => {
+          // Safe access to verification fields that may not exist yet
+          const phoneVerified = !!(user as any)?.phone_verified_at;
+          const emailVerified = !!(user as any)?.email_verified_at;
+          
           switch (selectedFilter) {
-            case 'verified': return user.phone_verified_at && user.email_verified_at;
-            case 'unverified': return !user.phone_verified_at || !user.email_verified_at;
-            case 'phone-pending': return !user.phone_verified_at;
-            case 'email-pending': return !user.email_verified_at;
+            case 'verified': return phoneVerified && emailVerified;
+            case 'unverified': return !phoneVerified || !emailVerified;
+            case 'phone-pending': return !phoneVerified;
+            case 'email-pending': return !emailVerified;
             case 'premium': return user.subscriptions?.[0]?.tier !== 'free';
             case 'free': return !user.subscriptions?.[0] || user.subscriptions?.[0]?.tier === 'free';
             default: return true;
@@ -70,22 +74,35 @@ export const EnhancedUserManagement = () => {
     mutationFn: async ({ userId, type }: { userId: string; type: 'email' | 'phone' }) => {
       const updateField = type === 'email' ? 'email_verified_at' : 'phone_verified_at';
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          [updateField]: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
-      
-      if (error) throw error;
+      // Try to update the profile with verification timestamp
+      // This will fail gracefully if the column doesn't exist yet
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ 
+            [updateField]: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId);
+        
+        if (error) {
+          console.warn(`Column ${updateField} may not exist yet:`, error);
+          throw new Error(`Manual verification will be available after database migration`);
+        }
 
-      // Log the admin action
-      await supabase.from('admin_logs').insert({
-        action: `manual_${type}_verification`,
-        target_user_id: userId,
-        details: { type, verified_at: new Date().toISOString() }
-      });
+        // Log the admin action if admin_logs table is accessible
+        try {
+          await supabase.from('admin_logs').insert({
+            action: `manual_${type}_verification`,
+            target_user_id: userId,
+            details: { type, verified_at: new Date().toISOString() }
+          });
+        } catch (logError) {
+          console.warn('Failed to log admin action:', logError);
+        }
+      } catch (error) {
+        throw error;
+      }
     },
     onSuccess: (_, { type }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users-enhanced'] });
@@ -114,12 +131,16 @@ export const EnhancedUserManagement = () => {
       
       if (error) throw error;
 
-      // Log the action
-      await supabase.from('admin_logs').insert({
-        action: 'gift_subscription',
-        target_user_id: userId,
-        details: { tier, duration_days: duration }
-      });
+      // Log the action if admin_logs table is accessible
+      try {
+        await supabase.from('admin_logs').insert({
+          action: 'gift_subscription',
+          target_user_id: userId,
+          details: { tier, duration_days: duration }
+        });
+      } catch (logError) {
+        console.warn('Failed to log admin action:', logError);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users-enhanced'] });
@@ -132,8 +153,9 @@ export const EnhancedUserManagement = () => {
   });
 
   const getVerificationStatus = (user: any) => {
-    const emailVerified = !!user.email_verified_at;
-    const phoneVerified = !!user.phone_verified_at;
+    // Safe access to verification fields that may not exist yet
+    const emailVerified = !!(user as any)?.email_verified_at;
+    const phoneVerified = !!(user as any)?.phone_verified_at;
 
     if (emailVerified && phoneVerified) {
       return { status: 'verified', color: 'bg-green-600', text: 'Fully Verified' };
@@ -207,6 +229,9 @@ export const EnhancedUserManagement = () => {
                     const verification = getVerificationStatus(user);
                     const metrics = getUserMetrics(user);
                     const currentPlan = user.subscriptions?.[0]?.tier || 'free';
+                    // Safe access to verification fields
+                    const emailVerified = !!(user as any)?.email_verified_at;
+                    const phoneVerified = !!(user as any)?.phone_verified_at;
 
                     return (
                       <TableRow key={user.id} className="border-purple-500/30 bg-black/40">
@@ -239,7 +264,7 @@ export const EnhancedUserManagement = () => {
                               {verification.text}
                             </Badge>
                             <div className="flex space-x-1">
-                              {!user.email_verified_at && (
+                              {!emailVerified && (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -249,7 +274,7 @@ export const EnhancedUserManagement = () => {
                                   Verify Email
                                 </Button>
                               )}
-                              {!user.phone_verified_at && (
+                              {!phoneVerified && (
                                 <Button
                                   size="sm"
                                   variant="outline"
