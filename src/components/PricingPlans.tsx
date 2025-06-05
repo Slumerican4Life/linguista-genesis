@@ -1,251 +1,294 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Zap, Crown, Building2, Sparkles, Shield } from 'lucide-react';
-
-interface PricingPlan {
-  id: string;
-  name: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  icon: React.ElementType;
-  popular?: boolean;
-  gradient: string;
-  wordLimit: string;
-  languages: string;
-  lyraVersion: string;
-  ads: string;
-}
-
-const plans: PricingPlan[] = [
-  {
-    id: 'free',
-    name: 'Free Tier',
-    price: '$0',
-    period: 'forever',
-    description: 'Perfect for trying out Linguista',
-    wordLimit: '500 words/day',
-    languages: '5 languages',
-    lyraVersion: 'Basic Lyra',
-    ads: '3 Ads (All)',
-    features: [
-      '500 words per day',
-      'Up to 5 languages',
-      'Basic translation quality',
-      'Ads displayed (top, middle, bottom)',
-      'Community support',
-      'Basic tone settings',
-      'Limited brain, no memory'
-    ],
-    icon: Sparkles,
-    gradient: 'from-gray-400 to-gray-600'
-  },
-  {
-    id: 'professional',
-    name: 'Professional',
-    price: '$19.99',
-    period: '/month',
-    description: 'Great for professionals and content creators',
-    wordLimit: '100K words/month',
-    languages: '30+ languages',
-    lyraVersion: 'Intermediate Lyra',
-    ads: '1 Header Ad',
-    features: [
-      '100,000 words per month',
-      'Access to 30+ languages',
-      '2FA security',
-      'Memory-lite functionality',
-      'Partial overlay access',
-      'Token system features',
-      'Priority email support',
-      'Reduced ads (header only)'
-    ],
-    icon: Shield,
-    gradient: 'from-blue-500 to-indigo-500'
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    price: '$29.99',
-    period: '/month',
-    description: 'Full-featured plan with complete AI capabilities',
-    wordLimit: 'Unlimited words',
-    languages: '35+ languages + dialects',
-    lyraVersion: 'Full Lyra',
-    ads: '❌ No Ads',
-    popular: true,
-    features: [
-      'Unlimited words per month',
-      'All 35+ languages & dialects',
-      'Local slang/dialect AI (Lexa)',
-      'File uploads (CSV, TXT, DOCX)',
-      'Word replace tool',
-      'Full Lyra overlay',
-      'Memory-enabled AI',
-      '"Preferred flavor" customization',
-      'AI gifting functionality',
-      'No advertisements'
-    ],
-    icon: Crown,
-    gradient: 'from-purple-500 to-pink-500'
-  },
-  {
-    id: 'business',
-    name: 'Business',
-    price: '$59.99',
-    period: '/month',
-    description: 'For teams and agencies with advanced needs',
-    wordLimit: 'Unlimited words',
-    languages: 'All 40+ languages',
-    lyraVersion: 'Advanced Lyra',
-    ads: '❌ No Ads',
-    features: [
-      'All Premium features included',
-      'Team collaboration (5 members)',
-      'Traffic learning capabilities',
-      'Advanced upload support',
-      'Custom glossaries',
-      'Analytics & insights',
-      'White-label options',
-      'Advanced personalization',
-      'Dedicated account manager',
-      'Priority support'
-    ],
-    icon: Building2,
-    gradient: 'from-emerald-500 to-teal-500'
-  }
-];
+import { Switch } from '@/components/ui/switch';
+import { Check, Crown, Zap, Rocket, Building, Star } from 'lucide-react';
 
 interface PricingPlansProps {
   onSelectPlan: (planId: string) => void;
-  currentPlan?: string;
+  currentPlan: string;
 }
 
 export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, currentPlan }) => {
+  const [isAnnual, setIsAnnual] = useState(false);
+
+  const plans = [
+    {
+      id: 'free',
+      name: 'Free Tier',
+      icon: <Star className="w-6 h-6" />,
+      monthlyPrice: 0,
+      annualPrice: 0,
+      description: 'Perfect for trying out Linguista',
+      features: [
+        '500 words per month',
+        '5 languages',
+        'Basic tone options',
+        'Community support',
+        'Ads supported'
+      ],
+      limitations: [
+        'Limited file uploads',
+        'Basic translations only',
+        'No priority support'
+      ],
+      stripeMonthlyId: null,
+      stripeAnnualId: null,
+      popular: false,
+      gradient: 'from-gray-600 to-gray-700'
+    },
+    {
+      id: 'professional',
+      name: 'Professional',
+      icon: <Zap className="w-6 h-6" />,
+      monthlyPrice: 19.99,
+      annualPrice: 199,
+      description: 'For professionals and content creators',
+      features: [
+        '100,000 words per month',
+        '30 languages',
+        'All tone options',
+        'File uploads (CSV, TXT, DOCX)',
+        'Priority email support',
+        'Minimal ads',
+        'Translation history',
+        'Export options'
+      ],
+      stripeMonthlyId: 'price_1RWSLbEEqiDDPmsdoUwQRkeJ',
+      stripeAnnualId: 'price_1RWSZ8EEqiDDPmsdqXqyueAb',
+      popular: true,
+      gradient: 'from-green-600 to-emerald-700'
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      icon: <Rocket className="w-6 h-6" />,
+      monthlyPrice: 29.99,
+      annualPrice: 299,
+      description: 'For teams and heavy users',
+      features: [
+        'Unlimited words',
+        '35 languages',
+        'Custom tone creation',
+        'All file types supported',
+        'URL content extraction',
+        'No ads',
+        'Priority chat support',
+        'Advanced analytics',
+        'Team collaboration',
+        'API access'
+      ],
+      stripeMonthlyId: 'price_1RWSoEEEqiDDPmsdpJwiiWgv',
+      stripeAnnualId: 'price_1RWSwDEEqiDDPmsdTvHVwc4z',
+      popular: false,
+      gradient: 'from-blue-600 to-purple-700'
+    },
+    {
+      id: 'business',
+      name: 'Business',
+      icon: <Building className="w-6 h-6" />,
+      monthlyPrice: 59.99,
+      annualPrice: 599,
+      description: 'For enterprises and large teams',
+      features: [
+        'Unlimited everything',
+        '40+ languages',
+        'Custom AI training',
+        'White-label options',
+        'Dedicated account manager',
+        'SLA guarantee',
+        'Custom integrations',
+        'Advanced security',
+        'Bulk processing',
+        'Phone support'
+      ],
+      stripeMonthlyId: 'price_1RWUexEEqiDDPmsdO7reYLOF',
+      stripeAnnualId: 'price_1RWUtbEEqiDDPmsdKjVXBJz8',
+      popular: false,
+      gradient: 'from-purple-600 to-pink-700'
+    }
+  ];
+
+  const getAnnualSavings = (monthly: number, annual: number) => {
+    if (monthly === 0) return 0;
+    const monthlyCost = monthly * 12;
+    return monthlyCost - annual;
+  };
+
+  const getSavingsPercentage = (monthly: number, annual: number) => {
+    if (monthly === 0) return 0;
+    const savings = getAnnualSavings(monthly, annual);
+    return Math.round((savings / (monthly * 12)) * 100);
+  };
+
   return (
-    <div className="py-12">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-          Choose Your Perfect Plan
+    <div className="space-y-8">
+      <div className="text-center space-y-6">
+        <h2 className="text-4xl font-black text-white">
+          Choose Your <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Linguista Plan</span>
         </h2>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Scale your global content strategy with our flexible pricing options
+        <p className="text-xl text-purple-100 max-w-3xl mx-auto">
+          Scale your global content with AI-powered translations that understand context, culture, and tone.
         </p>
+        
+        {/* Billing Toggle */}
+        <div className="flex items-center justify-center space-x-4 p-4 bg-black/40 rounded-xl border border-purple-500/30 w-fit mx-auto">
+          <span className={`font-medium transition-colors ${!isAnnual ? 'text-white' : 'text-purple-300'}`}>
+            Monthly
+          </span>
+          <Switch
+            checked={isAnnual}
+            onCheckedChange={setIsAnnual}
+            className="data-[state=checked]:bg-purple-600"
+          />
+          <span className={`font-medium transition-colors ${isAnnual ? 'text-white' : 'text-purple-300'}`}>
+            Annual
+          </span>
+          {isAnnual && (
+            <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold">
+              Save up to 20%
+            </Badge>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+      <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
         {plans.map((plan) => {
-          const IconComponent = plan.icon;
           const isCurrentPlan = currentPlan === plan.id;
-          
+          const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
+          const savings = isAnnual ? getAnnualSavings(plan.monthlyPrice, plan.annualPrice) : 0;
+          const savingsPercent = isAnnual ? getSavingsPercentage(plan.monthlyPrice, plan.annualPrice) : 0;
+
           return (
             <Card
               key={plan.id}
-              className={`relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+              className={`relative border-2 transition-all duration-300 hover:scale-[1.02] bg-black/60 backdrop-blur-sm ${
                 plan.popular
-                  ? 'ring-2 ring-purple-500 shadow-purple-500/25'
-                  : 'hover:shadow-lg'
-              } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''} backdrop-blur-sm bg-card/90`}
+                  ? 'border-purple-500 shadow-2xl shadow-purple-500/25'
+                  : isCurrentPlan
+                  ? 'border-blue-500 shadow-xl shadow-blue-500/25'
+                  : 'border-purple-500/30 hover:border-purple-400'
+              }`}
             >
               {plan.popular && (
-                <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 text-sm font-semibold rounded-bl-lg">
-                  Most Popular
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold px-4 py-1">
+                    <Crown className="w-3 h-3 mr-1" />
+                    Most Popular
+                  </Badge>
+                </div>
+              )}
+              
+              {isCurrentPlan && (
+                <div className="absolute -top-4 right-4">
+                  <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold">
+                    Current Plan
+                  </Badge>
                 </div>
               )}
 
-              <CardHeader className="text-center pb-4">
-                <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r ${plan.gradient} flex items-center justify-center shadow-lg`}>
-                  <IconComponent className="w-8 h-8 text-white" />
+              <CardHeader className={`text-center pb-4 bg-gradient-to-r ${plan.gradient}/20 rounded-t-lg border-b border-purple-500/30`}>
+                <div className={`w-12 h-12 mx-auto rounded-xl bg-gradient-to-r ${plan.gradient} flex items-center justify-center text-white mb-4`}>
+                  {plan.icon}
                 </div>
-                
-                <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
-                <CardDescription className="text-muted-foreground">
+                <CardTitle className="text-2xl font-black text-white">{plan.name}</CardTitle>
+                <CardDescription className="text-purple-200 font-medium">
                   {plan.description}
                 </CardDescription>
                 
-                <div className="flex items-baseline justify-center mt-4">
-                  <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                  <span className="text-muted-foreground ml-1">{plan.period}</span>
-                </div>
-
-                <div className="flex flex-col gap-2 mt-4">
-                  <Badge variant="secondary" className="text-xs">
-                    {plan.wordLimit}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {plan.languages}
-                  </Badge>
-                  <Badge variant="default" className="text-xs">
-                    {plan.lyraVersion}
-                  </Badge>
-                  <Badge variant={plan.ads.includes('❌') ? 'destructive' : 'secondary'} className="text-xs">
-                    {plan.ads}
-                  </Badge>
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-center space-x-1">
+                    <span className="text-4xl font-black text-white">
+                      ${price === 0 ? '0' : price.toFixed(price % 1 === 0 ? 0 : 2)}
+                    </span>
+                    {price > 0 && (
+                      <span className="text-purple-300 font-medium">
+                        /{isAnnual ? 'year' : 'month'}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {isAnnual && savings > 0 && (
+                    <div className="space-y-1">
+                      <Badge className="bg-green-600/20 text-green-300 border border-green-500/30">
+                        Save ${savings} ({savingsPercent}% off)
+                      </Badge>
+                      <p className="text-xs text-purple-300">
+                        vs ${(plan.monthlyPrice * 12).toFixed(0)} billed monthly
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <ul className="space-y-2">
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-3">
                   {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-xs text-muted-foreground">{feature}</span>
-                    </li>
+                    <div key={index} className="flex items-start space-x-3">
+                      <Check className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-purple-100 text-sm font-medium">{feature}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
 
                 <Button
                   onClick={() => onSelectPlan(plan.id)}
                   disabled={isCurrentPlan}
-                  className={`w-full mt-6 ${
+                  className={`w-full h-12 font-bold transition-all duration-300 ${
                     plan.popular
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-                      : plan.id === 'free'
-                      ? 'bg-gradient-to-r from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700'
-                      : `bg-gradient-to-r ${plan.gradient.replace('from-', 'from-').replace('to-', 'to-')} hover:opacity-90`
-                  } text-white font-semibold py-3 transition-all duration-300`}
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl'
+                      : isCurrentPlan
+                      ? 'bg-gray-600 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600'
+                  }`}
                 >
-                  {isCurrentPlan ? 'Current Plan' : plan.id === 'free' ? 'Get Started' : 'Upgrade Now'}
+                  {isCurrentPlan ? 'Current Plan' : plan.id === 'free' ? 'Get Started Free' : 'Upgrade Now'}
                 </Button>
+
+                {plan.id === 'free' && (
+                  <p className="text-xs text-purple-400 text-center">
+                    No credit card required
+                  </p>
+                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* One-Time Credits Option */}
-      <div className="mt-12 text-center">
-        <Card className="max-w-2xl mx-auto bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-center space-x-2">
-              <Zap className="w-6 h-6 text-amber-500" />
-              <span>One-Time Credits</span>
-            </CardTitle>
-            <CardDescription>
-              Need extra words for a big project? Buy credits without a subscription!
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center space-x-8">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-amber-600">50,000 words</div>
-                <div className="text-sm text-muted-foreground">One-time purchase</div>
-              </div>
-              <div className="text-3xl font-bold">$9.99</div>
-              <Button
-                onClick={() => onSelectPlan('credits')}
-                variant="outline"
-                className="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-950/30"
-              >
-                Buy Credits
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Refill Pack */}
+      <Card className="border border-green-500/30 bg-gradient-to-r from-green-900/20 to-emerald-900/20 backdrop-blur-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-green-100 text-xl font-bold">Need Extra Words?</CardTitle>
+          <CardDescription className="text-green-200">
+            One-time refill pack for any plan
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          <div className="space-y-2">
+            <div className="text-3xl font-black text-green-100">$9.99</div>
+            <div className="text-green-200">50,000 additional words</div>
+            <Badge className="bg-green-600/30 text-green-200 border-green-400">
+              Never expires
+            </Badge>
+          </div>
+          <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+            Buy Refill Pack
+          </Button>
+        </CardContent>
+      </Card>
+
+      <div className="text-center space-y-4">
+        <p className="text-purple-200 font-medium">
+          All plans include our 5-agent AI translation pipeline with cultural adaptation
+        </p>
+        <div className="flex justify-center space-x-8 text-sm text-purple-300">
+          <span>✓ 30-day money-back guarantee</span>
+          <span>✓ Cancel anytime</span>
+          <span>✓ Enterprise discounts available</span>
+        </div>
       </div>
     </div>
   );

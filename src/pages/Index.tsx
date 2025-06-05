@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Globe, Bot, Shield, Sparkles, Download, Copy, Settings, CreditCard, BarChart3, LogIn } from 'lucide-react';
+import { Upload, FileText, Globe, Bot, Shield, Sparkles, Download, Copy, Settings, CreditCard, BarChart3, LogIn, LogOut, Users } from 'lucide-react';
 import { AgentStatus } from '@/components/AgentStatus';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { ToneSelector } from '@/components/ToneSelector';
@@ -16,8 +17,10 @@ import { UsageDashboard } from '@/components/UsageDashboard';
 import { AuthModal } from '@/components/AuthModal';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { LyraOverlay } from '@/components/LyraOverlay';
+import { AdminDashboard } from '@/components/AdminDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { useQuery } from '@tanstack/react-query';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
@@ -26,15 +29,14 @@ const Index = () => {
   const [isTranslating, setIsTranslating] = useState(false);
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState('translate');
-  const [currentPlan, setCurrentPlan] = useState('free');
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [agentProgress, setAgentProgress] = useState<Record<string, 'idle' | 'processing' | 'complete'>>({
-    lyra: 'idle',
+    security: 'idle',
+    prism: 'idle',
     syntax: 'idle',
     voca: 'idle',
-    prism: 'idle',
-    security: 'idle'
+    lyra: 'idle'
   });
 
   // Authentication handling
@@ -50,19 +52,46 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Mock usage data - updated for new plan structure
-  const usageData = {
-    wordsUsed: 387,
-    wordsLimit: currentPlan === 'free' ? 500 : 
-               currentPlan === 'professional' ? 100000 : Infinity,
-    languagesUsed: 2,
-    languagesLimit: currentPlan === 'free' ? 5 : 
-                   currentPlan === 'professional' ? 30 : 
-                   currentPlan === 'premium' ? 35 : 40,
-    currentPlan: currentPlan,
-    daysUntilReset: 15,
-    translationsToday: 12
-  };
+  // Fetch user profile with role
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch usage data
+  const { data: usageData } = useQuery({
+    queryKey: ['usage', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('usage_metrics')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .single();
+      
+      return {
+        wordsUsed: data?.words_translated || 0,
+        wordsLimit: 500, // Default free tier limit
+        languagesUsed: 2,
+        languagesLimit: 5,
+        currentPlan: 'free',
+        daysUntilReset: 15,
+        translationsToday: data?.requests_made || 0
+      };
+    },
+    enabled: !!user,
+  });
 
   const handleTranslate = async () => {
     if (!inputText.trim() || selectedLanguages.length === 0) return;
@@ -70,7 +99,7 @@ const Index = () => {
     setIsTranslating(true);
     setTranslations({});
     
-    // Simulate agent pipeline - updated with Security agent
+    // Simulate agent pipeline
     const agents = ['security', 'prism', 'syntax', 'voca', 'lyra'];
     
     for (const agent of agents) {
@@ -79,18 +108,41 @@ const Index = () => {
       setAgentProgress(prev => ({ ...prev, [agent]: 'complete' }));
     }
     
-    // Simulate translations
-    const mockTranslations: Record<string, string> = {};
-    selectedLanguages.forEach(lang => {
-      mockTranslations[lang] = `[${selectedTone.toUpperCase()}] ${inputText} (contextually translated to ${lang})`;
-    });
+    try {
+      if (user) {
+        // Call real translation API
+        const { data, error } = await supabase.functions.invoke('ai-translate', {
+          body: {
+            text: inputText,
+            targetLanguages: selectedLanguages,
+            tone: selectedTone
+          }
+        });
+
+        if (error) throw error;
+        setTranslations(data.translations);
+      } else {
+        // Mock translations for non-authenticated users
+        const mockTranslations: Record<string, string> = {};
+        selectedLanguages.forEach(lang => {
+          mockTranslations[lang] = `[${selectedTone.toUpperCase()}] ${inputText} (contextually translated to ${lang}) - Sign in for real AI translations`;
+        });
+        setTranslations(mockTranslations);
+      }
+    } catch (error) {
+      console.error('Translation error:', error);
+      // Fallback to mock translations
+      const mockTranslations: Record<string, string> = {};
+      selectedLanguages.forEach(lang => {
+        mockTranslations[lang] = `Translation error occurred. Please try again.`;
+      });
+      setTranslations(mockTranslations);
+    }
     
-    setTranslations(mockTranslations);
     setIsTranslating(false);
   };
 
   const handleSelectPlan = (planId: string) => {
-    setCurrentPlan(planId);
     console.log('Selected plan:', planId);
     // Here you would integrate with Stripe
   };
@@ -104,72 +156,75 @@ const Index = () => {
     setUser(null);
   };
 
-  // Free tier ads component - updated for new plan structure
+  // Check if user is admin
+  const isAdmin = userProfile?.role === 'owner' || userProfile?.role === 'manager';
+
+  // Free tier ads component
   const AdBanner = ({ position }: { position: 'top' | 'middle' | 'bottom' }) => {
-    // Show all ads for free tier, header only for professional, none for premium/business
-    if (currentPlan === 'premium' || currentPlan === 'business') return null;
-    if (currentPlan === 'professional' && position !== 'top') return null;
-    if (currentPlan !== 'free' && currentPlan !== 'professional') return null;
+    if (userProfile?.role !== 'user' && userProfile?.role !== undefined) return null;
     
     return (
       <div className={`bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-center ${
         position === 'top' ? 'mb-8' : position === 'middle' ? 'my-8' : 'mt-8'
       }`}>
         <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
-          📢 {currentPlan === 'professional' ? 'Upgrade to Premium to remove all ads' : 'Remove ads and unlock premium features'}
+          📢 Remove ads and unlock premium features
         </p>
         <Button size="sm" onClick={() => setActiveTab('pricing')} className="bg-amber-600 hover:bg-amber-700">
-          {currentPlan === 'professional' ? 'Upgrade to Premium' : 'Upgrade Now'}
+          Upgrade Now
         </Button>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-background transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       {/* Premium gradient overlay */}
-      <div className="fixed inset-0 bg-gradient-to-br from-background via-background/95 to-background opacity-90 pointer-events-none" />
-      <div className="fixed inset-0 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-purple-500/5 pointer-events-none" />
+      <div className="fixed inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 pointer-events-none" />
       
       {/* Header */}
-      <header className="relative z-10 border-b bg-card/80 backdrop-blur-lg">
+      <header className="relative z-10 border-b border-purple-500/20 bg-black/40 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-xl shadow-purple-500/25">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-purple-500/25 relative overflow-hidden">
                 <img 
                   src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
                   alt="Linguista Logo" 
-                  className="w-8 h-8 object-contain"
+                  className="w-8 h-8 object-contain relative z-10"
                 />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 animate-pulse" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
                   Linguista
                 </h1>
-                <p className="text-sm text-muted-foreground font-medium">by Neuronix ~ Language Rewired</p>
+                <p className="text-sm text-purple-300 font-semibold">by Neuronix ~ Language Rewired</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-700 dark:text-purple-300 px-3 py-1">
+              <Badge variant="secondary" className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 text-purple-200 border-purple-400/30 px-3 py-1 font-bold">
                 <Bot className="w-3 h-3 mr-1" />
                 5 AI Agents Active
               </Badge>
-              <Badge variant="outline" className="px-3 py-1 font-medium">
-                <Shield className="w-3 h-3 mr-1" />
-                {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan
-              </Badge>
+              {userProfile && (
+                <Badge variant="outline" className="px-3 py-1 font-bold border-purple-400 text-purple-200">
+                  <Shield className="w-3 h-3 mr-1" />
+                  {userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)}
+                </Badge>
+              )}
               {user ? (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">
-                    Welcome, {user.email}
+                  <span className="text-sm text-purple-200 font-medium">
+                    Welcome, {userProfile?.full_name || user.email}
                   </span>
-                  <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  <Button variant="outline" size="sm" onClick={handleSignOut} className="border-red-400 text-red-300 hover:bg-red-900/20">
+                    <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </Button>
                 </div>
               ) : (
-                <Button onClick={() => setIsAuthModalOpen(true)} size="sm">
+                <Button onClick={() => setIsAuthModalOpen(true)} size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   <LogIn className="w-4 h-4 mr-2" />
                   Sign In
                 </Button>
@@ -188,20 +243,26 @@ const Index = () => {
       <main className="relative z-10 container mx-auto px-4 py-8">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/50 backdrop-blur-sm">
-            <TabsTrigger value="translate" className="flex items-center space-x-2 text-sm font-medium">
+          <TabsList className="grid w-full grid-cols-5 h-12 bg-black/50 backdrop-blur-sm border border-purple-500/30">
+            <TabsTrigger value="translate" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
               <Sparkles className="w-4 h-4" />
               <span>Translate</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center space-x-2 text-sm font-medium">
+            <TabsTrigger value="dashboard" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
               <BarChart3 className="w-4 h-4" />
               <span>Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="pricing" className="flex items-center space-x-2 text-sm font-medium">
+            {isAdmin && (
+              <TabsTrigger value="admin" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
+                <Users className="w-4 h-4" />
+                <span>Admin</span>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="pricing" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
               <CreditCard className="w-4 h-4" />
               <span>Pricing</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2 text-sm font-medium">
+            <TabsTrigger value="settings" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
               <Settings className="w-4 h-4" />
               <span>Settings</span>
             </TabsTrigger>
@@ -209,15 +270,25 @@ const Index = () => {
 
           {/* Translation Tab */}
           <TabsContent value="translate" className="space-y-8">
-            {/* Hero Section */}
-            <div className="text-center space-y-6 mb-12">
-              <h2 className="text-5xl font-bold text-foreground mb-6">
-                Transform Your Content for
-                <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent block mt-2">
-                  Global Audiences
-                </span>
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            {/* Hero Section with 3D Earth */}
+            <div className="text-center space-y-6 mb-12 relative">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-500/20 to-green-500/20 animate-spin-slow border-2 border-blue-400/30" 
+                       style={{ animationDuration: '20s' }}>
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-600/40 to-green-600/40 flex items-center justify-center">
+                      <Globe className="w-16 h-16 text-blue-300 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+                <h2 className="text-6xl font-black text-white mb-6 relative z-10 pt-8">
+                  Transform Your Content for
+                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent block mt-2">
+                    Global Audiences
+                  </span>
+                </h2>
+              </div>
+              <p className="text-xl text-purple-100 max-w-3xl mx-auto leading-relaxed font-medium">
                 Our AI agent team delivers contextual, culturally-rich translations that capture tone, humor, and local nuances—not just literal word conversion.
               </p>
             </div>
@@ -228,13 +299,13 @@ const Index = () => {
             {/* Main Translation Interface */}
             <div className="grid lg:grid-cols-2 gap-8">
               {/* Input Section */}
-              <Card className="shadow-2xl border-0 bg-card/90 backdrop-blur-sm">
-                <CardHeader className="bg-gradient-to-r from-purple-50/80 to-blue-50/80 dark:from-purple-950/30 dark:to-blue-950/30 rounded-t-lg">
-                  <CardTitle className="flex items-center space-x-2">
-                    <FileText className="w-5 h-5 text-purple-600" />
+              <Card className="shadow-2xl border border-purple-500/30 bg-black/60 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-purple-900/80 to-blue-900/80 rounded-t-lg border-b border-purple-500/30">
+                  <CardTitle className="flex items-center space-x-2 text-purple-100">
+                    <FileText className="w-5 h-5 text-purple-400" />
                     <span>Content Input</span>
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-purple-200">
                     Paste your content, upload a file, or enter a URL for translation
                   </CardDescription>
                 </CardHeader>
@@ -320,27 +391,27 @@ const Index = () => {
               </Card>
 
               {/* Output Section */}
-              <Card className="shadow-2xl border-0 bg-card/90 backdrop-blur-sm">
-                <CardHeader className="bg-gradient-to-r from-emerald-50/80 to-cyan-50/80 dark:from-emerald-950/30 dark:to-cyan-950/30 rounded-t-lg">
-                  <CardTitle className="flex items-center justify-between">
+              <Card className="shadow-2xl border border-purple-500/30 bg-black/60 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-emerald-900/80 to-cyan-900/80 rounded-t-lg border-b border-purple-500/30">
+                  <CardTitle className="flex items-center justify-between text-emerald-100">
                     <div className="flex items-center space-x-2">
-                      <Globe className="w-5 h-5 text-emerald-600" />
+                      <Globe className="w-5 h-5 text-emerald-400" />
                       <span>Translations</span>
                     </div>
                     {Object.keys(translations).length > 0 && (
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" className="border-emerald-400 text-emerald-300 hover:bg-emerald-900/20">
                           <Copy className="w-4 h-4 mr-1" />
                           Copy
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" className="border-emerald-400 text-emerald-300 hover:bg-emerald-900/20">
                           <Download className="w-4 h-4 mr-1" />
                           Export
                         </Button>
                       </div>
                     )}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-emerald-200">
                     Culturally-aware translations with tone adaptation
                   </CardDescription>
                 </CardHeader>
@@ -365,24 +436,33 @@ const Index = () => {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard">
-            <UsageDashboard 
-              usage={usageData}
-              onUpgrade={() => setActiveTab('pricing')}
-            />
+            {usageData && (
+              <UsageDashboard 
+                usage={usageData}
+                onUpgrade={() => setActiveTab('pricing')}
+              />
+            )}
           </TabsContent>
+
+          {/* Admin Tab */}
+          {isAdmin && (
+            <TabsContent value="admin">
+              <AdminDashboard />
+            </TabsContent>
+          )}
 
           {/* Pricing Tab */}
           <TabsContent value="pricing">
             <PricingPlans 
               onSelectPlan={handleSelectPlan}
-              currentPlan={currentPlan}
+              currentPlan={userProfile?.subscriptions?.[0]?.tier || 'free'}
             />
           </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings">
             <SettingsPanel 
-              currentPlan={currentPlan}
+              currentPlan={userProfile?.subscriptions?.[0]?.tier || 'free'}
               onUpgrade={() => setActiveTab('pricing')}
             />
           </TabsContent>

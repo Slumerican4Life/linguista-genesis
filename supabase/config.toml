@@ -1,1 +1,8 @@
+
 project_id = "ibhiynlpmcbguclhuecg"
+
+[functions.lyra-chat]
+verify_jwt = false
+
+[functions.ai-translate]
+verify_jwt = true

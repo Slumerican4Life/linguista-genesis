@@ -1,77 +1,86 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Bot, Send, X, Minimize2, Maximize2, Brain } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'lyra';
+  isUser: boolean;
   timestamp: Date;
 }
 
-export const LyraOverlay: React.FC = () => {
+export const LyraOverlay = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hi! I'm Lyra, your AI assistant. I'm here to help you with Linguista and answer any questions about our translation services. How can I assist you today?",
-      sender: 'lyra',
+      content: 'Hello! I\'m Lyra, your AI assistant for Linguista. I can help you with translations, platform features, subscription questions, and technical support. How can I assist you today?',
+      isUser: false,
       timestamp: new Date()
     }
   ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!message.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputMessage,
-      sender: 'user',
+      content: message,
+      isUser: true,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    setIsTyping(true);
+    setMessage('');
+    setIsLoading(true);
 
-    // Simulate Lyra's response
-    setTimeout(() => {
-      const responses = [
-        "I understand you're looking for help with translations. Our AI agents (Syntax, Voca, Prism, and our Security agent) work together to provide contextually accurate translations.",
-        "For that feature, you'll need to upgrade to our Premium plan ($19.99/month) which includes advanced tone settings and file uploads.",
-        "Let me help you with that! Our Business plan ($59.99/month) includes team collaboration and unlimited translations.",
-        "Great question! The word replacement feature allows you to click on any translated word to see alternatives and customize your translation.",
-        "I can help you set up 2FA for better account security. Would you like me to guide you through the process?",
-        "Our URL crawler can extract content from websites and social media posts for translation. This feature is available in Premium and Business plans."
-      ];
+    try {
+      const conversationHistory = messages.map(msg => ({
+        role: msg.isUser ? 'user' : 'assistant',
+        content: msg.content
+      }));
 
-      const lyraResponse: Message = {
+      const { data, error } = await supabase.functions.invoke('lyra-chat', {
+        body: {
+          message: userMessage.content,
+          conversationHistory
+        }
+      });
+
+      if (error) throw error;
+
+      const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: responses[Math.floor(Math.random() * responses.length)],
-        sender: 'lyra',
+        content: data.response,
+        isUser: false,
         timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, lyraResponse]);
-      setIsTyping(false);
-    }, 1500);
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Lyra chat error:', error);
+      toast.error('Failed to get response from Lyra. Please try again.');
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'I apologize, but I\'m having trouble connecting right now. Please try again in a moment.',
+        isUser: false,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -86,142 +95,119 @@ export const LyraOverlay: React.FC = () => {
       <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={() => setIsOpen(true)}
-          className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-2xl"
-          size="sm"
+          className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-2xl shadow-purple-500/25 transition-all duration-300 hover:scale-110 group"
+          style={{ pointerEvents: 'auto' }}
         >
           <div className="relative">
-            <img 
-              src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
-              alt="Lyra AI" 
-              className="w-8 h-8 object-contain"
-            />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+            <Brain className="w-8 h-8 text-white group-hover:animate-pulse" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
           </div>
         </Button>
-        
-        {/* Floating notification bubble */}
-        <div className="absolute -top-12 -left-8 bg-background border rounded-lg p-2 shadow-lg animate-bounce">
-          <p className="text-sm font-medium">Hi! I'm Lyra 👋</p>
-          <p className="text-xs text-muted-foreground">Need help?</p>
-        </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <Card className={`w-80 shadow-2xl transition-all duration-300 ${isMinimized ? 'h-14' : 'h-96'}`}>
-        <CardHeader className="pb-2 cursor-pointer" onClick={() => isMinimized && setIsMinimized(false)}>
-          <CardTitle className="text-lg flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+    <div 
+      className={`fixed z-50 transition-all duration-300 ${
+        isMinimized 
+          ? 'bottom-6 right-6 w-80 h-16' 
+          : 'bottom-6 right-6 w-96 h-[600px]'
+      }`}
+      style={{ pointerEvents: 'auto' }}
+    >
+      <Card className="h-full border border-purple-500/30 bg-black/90 backdrop-blur-xl shadow-2xl shadow-purple-500/25">
+        <CardHeader className="pb-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-b border-purple-500/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
               <div className="relative">
-                <img 
-                  src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
-                  alt="Lyra AI" 
-                  className="w-8 h-8 object-contain"
-                />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                  <Brain className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-black" />
               </div>
-              <div>
-                <span className="text-gradient">Lyra</span>
-                <Badge variant="secondary" className="ml-2 text-xs">AI Support</Badge>
+              <div className="space-y-1">
+                <CardTitle className="text-white text-lg font-bold">Lyra</CardTitle>
+                <Badge variant="outline" className="text-xs border-purple-400 text-purple-200">
+                  AI Assistant
+                </Badge>
               </div>
             </div>
-            <div className="flex space-x-1">
+            <div className="flex items-center space-x-2">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsMinimized(!isMinimized);
-                }}
-                className="h-6 w-6 p-0"
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="text-purple-300 hover:text-white hover:bg-purple-600/20 w-8 h-8 p-0"
               >
-                {isMinimized ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
+                {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(false);
-                }}
-                className="h-6 w-6 p-0"
+                onClick={() => setIsOpen(false)}
+                className="text-purple-300 hover:text-white hover:bg-red-600/20 w-8 h-8 p-0"
               >
-                <X className="h-3 w-3" />
+                <X className="w-4 h-4" />
               </Button>
             </div>
-          </CardTitle>
+          </div>
         </CardHeader>
 
         {!isMinimized && (
-          <CardContent className="p-0 flex flex-col h-80">
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        message.sender === 'user'
-                          ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
-                          : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2 mb-1">
-                        {message.sender === 'lyra' ? (
-                          <Bot className="w-3 h-3" />
-                        ) : (
-                          <User className="w-3 h-3" />
-                        )}
-                        <span className="text-xs opacity-70">
-                          {message.sender === 'lyra' ? 'Lyra' : 'You'}
-                        </span>
-                      </div>
-                      <p className="text-sm">{message.content}</p>
-                    </div>
+          <CardContent className="p-0 flex flex-col h-full">
+            <ScrollArea className="flex-1 p-4 space-y-4">
+              {messages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+                  <div className={`max-w-[80%] p-3 rounded-lg ${
+                    msg.isUser 
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' 
+                      : 'bg-purple-900/40 text-purple-100 border border-purple-500/30'
+                  }`}>
+                    <p className="text-sm leading-relaxed">{msg.content}</p>
+                    <p className="text-xs opacity-70 mt-1">
+                      {msg.timestamp.toLocaleTimeString()}
+                    </p>
                   </div>
-                ))}
-                
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="bg-muted rounded-lg p-3 max-w-[80%]">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <Bot className="w-3 h-3" />
-                        <span className="text-xs text-muted-foreground">Lyra</span>
-                      </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start mb-4">
+                  <div className="bg-purple-900/40 text-purple-100 border border-purple-500/30 p-3 rounded-lg">
+                    <div className="flex items-center space-x-2">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
+                      <span className="text-xs text-purple-300">Lyra is thinking...</span>
                     </div>
                   </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
+                </div>
+              )}
             </ScrollArea>
-
-            <div className="border-t p-4">
-              <div className="flex space-x-2">
+            
+            <div className="p-4 border-t border-purple-500/30">
+              <div className="flex items-center space-x-2">
                 <Input
-                  placeholder="Ask Lyra anything..."
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="flex-1"
+                  placeholder="Ask Lyra anything about Linguista..."
+                  className="flex-1 bg-purple-900/20 border-purple-500/30 text-white placeholder:text-purple-300"
+                  disabled={isLoading}
                 />
                 <Button
                   onClick={handleSendMessage}
-                  disabled={!inputMessage.trim() || isTyping}
-                  size="sm"
-                  className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                  disabled={!message.trim() || isLoading}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 w-10 h-10 p-0"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="w-4 h-4" />
                 </Button>
               </div>
+              <p className="text-xs text-purple-400 mt-2 text-center">
+                Powered by OpenAI • Linguista by Neuronix
+              </p>
             </div>
           </CardContent>
         )}
