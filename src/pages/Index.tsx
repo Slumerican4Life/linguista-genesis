@@ -220,13 +220,13 @@ const Index = () => {
     if (!user || currentPlan !== 'free') return null;
     
     return (
-      <div className={`bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-center ${
+      <div className={`bg-black border border-red-500 rounded-lg p-4 text-center ${
         position === 'top' ? 'mb-8' : position === 'middle' ? 'my-8' : 'mt-8'
       }`}>
-        <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+        <p className="text-sm text-red-400 mb-2">
           📢 Remove ads and unlock premium features
         </p>
-        <Button size="sm" onClick={() => setActiveTab('pricing')} className="bg-amber-600 hover:bg-amber-700">
+        <Button size="sm" onClick={() => setActiveTab('pricing')} className="bg-red-600 hover:bg-red-700 text-white">
           Upgrade Now
         </Button>
       </div>
@@ -234,53 +234,49 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      {/* Premium gradient overlay */}
-      <div className="fixed inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 pointer-events-none" />
-      
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="relative z-10 border-b border-purple-500/20 bg-black/40 backdrop-blur-xl">
+      <header className="relative z-10 border-b border-blue-600 bg-black">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-purple-500/25 relative overflow-hidden">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl flex items-center justify-center border border-purple-500">
                 <img 
                   src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
                   alt="Linguista Logo" 
                   className="w-8 h-8 object-contain relative z-10"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 animate-pulse" />
               </div>
               <div>
-                <h1 className="text-3xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-black text-white">
                   Linguista
                 </h1>
-                <p className="text-sm text-purple-300 font-semibold">by Neuronix ~ Language Rewired</p>
+                <p className="text-sm text-blue-300 font-semibold">by Neuronix ~ Language Rewired</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 text-purple-200 border-purple-400/30 px-3 py-1 font-bold">
+              <Badge variant="secondary" className="bg-purple-700 text-white border-purple-500 px-3 py-1 font-bold">
                 <Bot className="w-3 h-3 mr-1" />
                 5 AI Agents Active
               </Badge>
               {userProfile && (
-                <Badge variant="outline" className="px-3 py-1 font-bold border-purple-400 text-purple-200">
+                <Badge variant="outline" className="px-3 py-1 font-bold border-blue-500 text-blue-200 bg-blue-900">
                   <Shield className="w-3 h-3 mr-1" />
                   {userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)}
                 </Badge>
               )}
               {user ? (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-purple-200 font-medium">
+                  <span className="text-sm text-blue-200 font-medium">
                     Welcome, {userProfile?.full_name || user.email}
                   </span>
-                  <Button variant="outline" size="sm" onClick={handleSignOut} className="border-red-400 text-red-300 hover:bg-red-900/20">
+                  <Button variant="outline" size="sm" onClick={handleSignOut} className="border-red-500 text-red-400 hover:bg-red-900 bg-black">
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </Button>
                 </div>
               ) : (
-                <Button onClick={() => setIsAuthModalOpen(true)} size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Button onClick={() => setIsAuthModalOpen(true)} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
                   <LogIn className="w-4 h-4 mr-2" />
                   Sign In
                 </Button>
@@ -299,26 +295,26 @@ const Index = () => {
       <main className="relative z-10 container mx-auto px-4 py-8">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5 h-12 bg-black/50 backdrop-blur-sm border border-purple-500/30">
-            <TabsTrigger value="translate" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-5 h-12 bg-black border border-blue-600">
+            <TabsTrigger value="translate" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
               <Sparkles className="w-4 h-4" />
               <span>Translate</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
+            <TabsTrigger value="dashboard" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
               <BarChart3 className="w-4 h-4" />
               <span>Dashboard</span>
             </TabsTrigger>
             {isAdmin && (
-              <TabsTrigger value="admin" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
+              <TabsTrigger value="admin" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
                 <Users className="w-4 h-4" />
                 <span>Admin</span>
               </TabsTrigger>
             )}
-            <TabsTrigger value="pricing" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
+            <TabsTrigger value="pricing" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
               <CreditCard className="w-4 h-4" />
               <span>Pricing</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-600/40 data-[state=active]:text-white">
+            <TabsTrigger value="settings" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
               <Settings className="w-4 h-4" />
               <span>Settings</span>
             </TabsTrigger>
@@ -330,21 +326,21 @@ const Index = () => {
             <div className="text-center space-y-6 mb-12 relative">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-500/20 to-green-500/20 animate-spin-slow border-2 border-blue-400/30" 
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-600/30 to-purple-700/30 animate-spin-slow border-2 border-blue-500" 
                        style={{ animationDuration: '20s' }}>
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-600/40 to-green-600/40 flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-700/50 to-purple-700/50 flex items-center justify-center">
                       <Globe className="w-16 h-16 text-blue-300 animate-pulse" />
                     </div>
                   </div>
                 </div>
                 <h2 className="text-6xl font-black text-white mb-6 relative z-10 pt-8">
                   Transform Your Content for
-                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent block mt-2">
+                  <span className="text-purple-500 block mt-2">
                     Global Audiences
                   </span>
                 </h2>
               </div>
-              <p className="text-xl text-purple-100 max-w-3xl mx-auto leading-relaxed font-medium">
+              <p className="text-xl text-blue-200 max-w-3xl mx-auto leading-relaxed font-medium">
                 Our AI agent team delivers contextual, culturally-rich translations that capture tone, humor, and local nuances—not just literal word conversion.
               </p>
             </div>
@@ -355,24 +351,24 @@ const Index = () => {
             {/* Main Translation Interface */}
             <div className="grid lg:grid-cols-2 gap-8">
               {/* Input Section */}
-              <Card className="shadow-2xl border border-purple-500/30 bg-black/60 backdrop-blur-sm">
-                <CardHeader className="bg-gradient-to-r from-purple-900/80 to-blue-900/80 rounded-t-lg border-b border-purple-500/30">
-                  <CardTitle className="flex items-center space-x-2 text-purple-100">
-                    <FileText className="w-5 h-5 text-purple-400" />
+              <Card className="shadow-2xl border border-blue-600 bg-black">
+                <CardHeader className="bg-blue-900 rounded-t-lg border-b border-blue-600">
+                  <CardTitle className="flex items-center space-x-2 text-white">
+                    <FileText className="w-5 h-5 text-blue-400" />
                     <span>Content Input</span>
                   </CardTitle>
-                  <CardDescription className="text-purple-200">
+                  <CardDescription className="text-blue-200">
                     Paste your content, upload a file, or enter a URL for translation
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   <Tabs defaultValue="text" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="text">Text Input</TabsTrigger>
-                      <TabsTrigger value="file" disabled={currentPlan === 'free'}>
+                    <TabsList className="grid w-full grid-cols-3 bg-black border border-blue-600">
+                      <TabsTrigger value="text" className="data-[state=active]:bg-blue-700 text-blue-200">Text Input</TabsTrigger>
+                      <TabsTrigger value="file" disabled={currentPlan === 'free'} className="data-[state=active]:bg-blue-700 text-blue-200">
                         File Upload {currentPlan === 'free' && '(Premium+)'}
                       </TabsTrigger>
-                      <TabsTrigger value="url" disabled={currentPlan === 'free'}>
+                      <TabsTrigger value="url" disabled={currentPlan === 'free'} className="data-[state=active]:bg-blue-700 text-blue-200">
                         URL Crawler {currentPlan === 'free' && '(Premium+)'}
                       </TabsTrigger>
                     </TabsList>
@@ -381,18 +377,18 @@ const Index = () => {
                         placeholder="Paste your website content, social media posts, marketing copy, or any text you want to translate..."
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
-                        className="min-h-[200px] resize-none border-2 focus:border-purple-400 dark:focus:border-purple-500 transition-colors bg-background/50"
+                        className="min-h-[200px] resize-none border-2 border-blue-600 focus:border-purple-500 bg-black text-white transition-colors"
                       />
-                      <div className="text-sm text-muted-foreground flex justify-between">
+                      <div className="text-sm text-blue-300 flex justify-between">
                         <span>{inputText.length} characters</span>
                         <span>Supports up to 10,000 characters</span>
                       </div>
                     </TabsContent>
                     <TabsContent value="file" className="space-y-4">
-                      <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 text-center hover:border-purple-400 dark:hover:border-purple-500 transition-colors cursor-pointer bg-muted/20">
-                        <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-2">Drop your file here or click to browse</p>
-                        <p className="text-sm text-muted-foreground/70">Supports CSV, TXT, DOCX files up to 10MB</p>
+                      <div className="border-2 border-dashed border-blue-600/30 rounded-lg p-8 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-blue-900/20">
+                        <Upload className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                        <p className="text-blue-600 mb-2">Drop your file here or click to browse</p>
+                        <p className="text-sm text-blue-600/70">Supports CSV, TXT, DOCX files up to 10MB</p>
                         <Button variant="outline" className="mt-4" disabled={currentPlan === 'free'}>
                           Choose File
                         </Button>
@@ -429,7 +425,7 @@ const Index = () => {
                   <Button 
                     onClick={handleTranslate}
                     disabled={!inputText.trim() || selectedLanguages.length === 0 || isTranslating}
-                    className="w-full h-12 bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 hover:from-purple-600 hover:via-blue-600 hover:to-purple-600 text-white font-semibold transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl"
+                    className="w-full h-12 bg-purple-700 hover:bg-purple-800 text-white font-semibold transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl"
                   >
                     {isTranslating ? (
                       <>
@@ -447,27 +443,27 @@ const Index = () => {
               </Card>
 
               {/* Output Section */}
-              <Card className="shadow-2xl border border-purple-500/30 bg-black/60 backdrop-blur-sm">
-                <CardHeader className="bg-gradient-to-r from-emerald-900/80 to-cyan-900/80 rounded-t-lg border-b border-purple-500/30">
-                  <CardTitle className="flex items-center justify-between text-emerald-100">
+              <Card className="shadow-2xl border border-blue-600 bg-black">
+                <CardHeader className="bg-blue-900 rounded-t-lg border-b border-blue-600">
+                  <CardTitle className="flex items-center justify-between text-white">
                     <div className="flex items-center space-x-2">
-                      <Globe className="w-5 h-5 text-emerald-400" />
+                      <Globe className="w-5 h-5 text-blue-400" />
                       <span>Translations</span>
                     </div>
                     {Object.keys(translations).length > 0 && (
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline" className="border-emerald-400 text-emerald-300 hover:bg-emerald-900/20">
+                        <Button size="sm" variant="outline" className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black">
                           <Copy className="w-4 h-4 mr-1" />
                           Copy
                         </Button>
-                        <Button size="sm" variant="outline" className="border-emerald-400 text-emerald-300 hover:bg-emerald-900/20">
+                        <Button size="sm" variant="outline" className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black">
                           <Download className="w-4 h-4 mr-1" />
                           Export
                         </Button>
                       </div>
                     )}
                   </CardTitle>
-                  <CardDescription className="text-emerald-200">
+                  <CardDescription className="text-blue-200">
                     Culturally-aware translations with tone adaptation
                   </CardDescription>
                 </CardHeader>
@@ -502,14 +498,14 @@ const Index = () => {
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                    <p className="text-purple-200">Loading your dashboard...</p>
+                    <p className="text-blue-200">Loading your dashboard...</p>
                   </div>
                 </div>
               )
             ) : (
               <div className="text-center py-12">
-                <p className="text-purple-200 mb-4">Please sign in to view your dashboard</p>
-                <Button onClick={() => setIsAuthModalOpen(true)}>Sign In</Button>
+                <p className="text-blue-200 mb-4">Please sign in to view your dashboard</p>
+                <Button onClick={() => setIsAuthModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">Sign In</Button>
               </div>
             )}
           </TabsContent>
@@ -538,8 +534,8 @@ const Index = () => {
               />
             ) : (
               <div className="text-center py-12">
-                <p className="text-purple-200 mb-4">Please sign in to access settings</p>
-                <Button onClick={() => setIsAuthModalOpen(true)}>Sign In</Button>
+                <p className="text-blue-200 mb-4">Please sign in to access settings</p>
+                <Button onClick={() => setIsAuthModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">Sign In</Button>
               </div>
             )}
           </TabsContent>
