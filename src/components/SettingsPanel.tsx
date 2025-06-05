@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +8,14 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 import { 
   User, Shield, Globe, Palette, Bell, CreditCard, Users, Key, 
-  Phone, Mail, Eye, EyeOff, Download, Upload, Trash2, Settings
+  Phone, Mail, Eye, EyeOff, Download, Upload, Trash2, Settings, Loader2
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface SettingsPanelProps {
   currentPlan: string;
@@ -20,56 +23,174 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpgrade }) => {
-  const [settings, setSettings] = useState({
-    profile: {
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      phone: '+1 (555) 123-4567',
-      avatar: null
-    },
-    security: {
-      twoFactorEnabled: false,
-      emailVerified: true,
-      phoneVerified: false,
-      loginNotifications: true,
-      sessionTimeout: '24h'
-    },
-    translation: {
-      defaultSourceLang: 'en',
-      defaultTargetLangs: ['es', 'fr'],
-      defaultTone: 'natural',
-      customTone: '',
-      autoDetectLanguage: true,
-      saveTranslationHistory: true,
-      enableLearning: true
-    },
-    notifications: {
-      emailNotifications: true,
-      pushNotifications: false,
-      weeklyReports: true,
-      usageAlerts: true,
-      newFeatures: true
-    },
-    billing: {
-      autoRenew: true,
-      receiveInvoices: true,
-      usageAlerts: true
-    }
-  });
-
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [phoneVerificationCode, setPhoneVerificationCode] = useState('');
+  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
-  const updateSetting = (category: string, key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category as keyof typeof prev],
-        [key]: value
-      }
-    }));
+  // Get current user
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
+  // Fetch user profile
+  const { data: profile, refetch: refetchProfile } = useQuery({
+    queryKey: ['userProfile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Update profile mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (updates: any) => {
+      if (!user) throw new Error('No user found');
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Profile updated successfully' });
+      refetchProfile();
+    },
+    onError: (error) => {
+      toast({ title: 'Error updating profile', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Photo upload mutation
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!user) throw new Error('No user found');
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      return publicUrl;
+    },
+    onSuccess: () => {
+      toast({ title: 'Photo uploaded successfully' });
+      refetchProfile();
+      setIsUploadingPhoto(false);
+    },
+    onError: (error) => {
+      toast({ title: 'Error uploading photo', description: error.message, variant: 'destructive' });
+      setIsUploadingPhoto(false);
+    },
+  });
+
+  // Send email verification
+  const sendEmailVerificationMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user?.email || '',
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Verification email sent', description: 'Check your inbox for the verification link' });
+    },
+    onError: (error) => {
+      toast({ title: 'Error sending verification email', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Error', description: 'Please select an image file', variant: 'destructive' });
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Error', description: 'Image must be less than 5MB', variant: 'destructive' });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    uploadPhotoMutation.mutate(file);
+  };
+
+  const handleDeletePhoto = async () => {
+    if (!user || !profile?.avatar_url) return;
+
+    try {
+      // Extract file path from URL
+      const urlParts = profile.avatar_url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const filePath = `avatars/${fileName}`;
+
+      // Delete from storage
+      const { error: deleteError } = await supabase.storage
+        .from('avatars')
+        .remove([filePath]);
+
+      if (deleteError) throw deleteError;
+
+      // Update profile
+      await updateProfileMutation.mutateAsync({ avatar_url: null });
+    } catch (error: any) {
+      toast({ title: 'Error deleting photo', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!newPassword) {
+      toast({ title: 'Error', description: 'Please enter a new password', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      
+      toast({ title: 'Password updated successfully' });
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch (error: any) {
+      toast({ title: 'Error updating password', description: error.message, variant: 'destructive' });
+    }
   };
 
   const languages = [
@@ -96,6 +217,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
 
   const isPremiumOrBusiness = currentPlan === 'pro' || currentPlan === 'agency';
   const isBusiness = currentPlan === 'agency';
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <p>Please sign in to access settings.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -145,53 +274,82 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center space-x-4">
-                <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  {settings.profile.firstName[0]}{settings.profile.lastName[0]}
-                </div>
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={profile?.avatar_url || ''} alt="Profile photo" />
+                  <AvatarFallback className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-2xl font-bold">
+                    {profile?.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="space-y-2">
-                  <Button variant="outline" size="sm">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload Photo
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remove
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm" disabled={isUploadingPhoto} asChild>
+                      <label htmlFor="photo-upload" className="cursor-pointer">
+                        {isUploadingPhoto ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4 mr-2" />
+                        )}
+                        Upload Photo
+                      </label>
+                    </Button>
+                    <input
+                      id="photo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoUpload}
+                    />
+                    {profile?.avatar_url && (
+                      <Button variant="ghost" size="sm" onClick={handleDeletePhoto}>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">JPG, PNG or GIF, max 5MB</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="fullName">Full Name</Label>
                   <Input
-                    id="firstName"
-                    value={settings.profile.firstName}
-                    onChange={(e) => updateSetting('profile', 'firstName', e.target.value)}
+                    id="fullName"
+                    value={profile?.full_name || ''}
+                    onChange={(e) => updateProfileMutation.mutate({ full_name: e.target.value })}
+                    placeholder="Enter your full name"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={settings.profile.lastName}
-                    onChange={(e) => updateSetting('profile', 'lastName', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <div className="flex space-x-2">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={settings.profile.email}
-                    onChange={(e) => updateSetting('profile', 'email', e.target.value)}
-                    className="flex-1"
-                  />
-                  <Badge variant={settings.security.emailVerified ? 'default' : 'secondary'}>
-                    {settings.security.emailVerified ? 'Verified' : 'Unverified'}
-                  </Badge>
+                  <Label htmlFor="email">Email Address</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      id="email"
+                      type="email"
+                      value={user.email || ''}
+                      disabled
+                      className="flex-1"
+                    />
+                    <Badge variant={user.email_confirmed_at ? 'default' : 'secondary'}>
+                      {user.email_confirmed_at ? 'Verified' : 'Unverified'}
+                    </Badge>
+                  </div>
+                  {!user.email_confirmed_at && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2"
+                      onClick={() => sendEmailVerificationMutation.mutate()}
+                      disabled={sendEmailVerificationMutation.isPending}
+                    >
+                      {sendEmailVerificationMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Mail className="w-4 h-4 mr-2" />
+                      )}
+                      Send Verification Email
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -201,14 +359,26 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
                   <Input
                     id="phone"
                     type="tel"
-                    value={settings.profile.phone}
-                    onChange={(e) => updateSetting('profile', 'phone', e.target.value)}
+                    value={profile?.phone_number || ''}
+                    onChange={(e) => updateProfileMutation.mutate({ phone_number: e.target.value })}
+                    placeholder="Enter your phone number"
                     className="flex-1"
                   />
-                  <Badge variant={settings.security.phoneVerified ? 'default' : 'secondary'}>
-                    {settings.security.phoneVerified ? 'Verified' : 'Unverified'}
+                  <Badge variant={user.phone_confirmed_at ? 'default' : 'secondary'}>
+                    {user.phone_confirmed_at ? 'Verified' : 'Unverified'}
                   </Badge>
                 </div>
+                {profile?.phone_number && !user.phone_confirmed_at && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => setShowPhoneVerification(true)}
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    Verify Phone
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -221,30 +391,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
               <CardDescription>Protect your account with advanced security features</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Two-Factor Authentication</h4>
-                  <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
-                </div>
-                <Switch
-                  checked={settings.security.twoFactorEnabled}
-                  onCheckedChange={(checked) => updateSetting('security', 'twoFactorEnabled', checked)}
-                />
-              </div>
-
-              <Separator />
-
               <div>
                 <h4 className="font-medium mb-4">Change Password</h4>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Label htmlFor="newPassword">New Password</Label>
                     <div className="relative">
                       <Input
-                        id="currentPassword"
+                        id="newPassword"
                         type={showPassword ? 'text' : 'password'}
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
                       />
                       <Button
                         type="button"
@@ -257,47 +415,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
                       </Button>
                     </div>
                   </div>
-                  <div>
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                    />
-                  </div>
-                  <Button>Update Password</Button>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Login Notifications</h4>
-                    <p className="text-sm text-muted-foreground">Get notified of new device logins</p>
-                  </div>
-                  <Switch
-                    checked={settings.security.loginNotifications}
-                    onCheckedChange={(checked) => updateSetting('security', 'loginNotifications', checked)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="sessionTimeout">Session Timeout</Label>
-                  <Select value={settings.security.sessionTimeout} onValueChange={(value) => updateSetting('security', 'sessionTimeout', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1h">1 hour</SelectItem>
-                      <SelectItem value="8h">8 hours</SelectItem>
-                      <SelectItem value="24h">24 hours</SelectItem>
-                      <SelectItem value="7d">7 days</SelectItem>
-                      <SelectItem value="never">Never</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Button onClick={handleUpdatePassword} disabled={!newPassword}>
+                    Update Password
+                  </Button>
                 </div>
               </div>
             </CardContent>
