@@ -1,801 +1,325 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
-import { 
-  User, Shield, Globe, Palette, Bell, CreditCard, Users, Key, 
-  Phone, Mail, Eye, EyeOff, Download, Upload, Trash2, Settings, Loader2
-} from 'lucide-react';
+import { User, Upload, Save, Shield, Globe, CreditCard, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PhoneVerification } from './verification/PhoneVerification';
+import { EmailVerification } from './verification/EmailVerification';
+import { WebsiteTranslator } from './translation/WebsiteTranslator';
 
 interface SettingsPanelProps {
   currentPlan: string;
   onUpgrade: () => void;
 }
 
-interface UserSettings {
-  translation: {
-    defaultSourceLang: string;
-    defaultTargetLangs: string[];
-    defaultTone: string;
-    customTone: string;
-    autoDetectLanguage: boolean;
-    saveTranslationHistory: boolean;
-    enableLearning: boolean;
-  };
-  notifications: {
-    emailNotifications: boolean;
-    pushNotifications: boolean;
-    weeklyReports: boolean;
-    usageAlerts: boolean;
-    newFeatures: boolean;
-  };
-  billing: {
-    autoRenew: boolean;
-    receiveInvoices: boolean;
-  };
-}
-
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpgrade }) => {
-  const { toast } = useToast();
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState('');
   const queryClient = useQueryClient();
-  const [showPassword, setShowPassword] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [phoneVerificationCode, setPhoneVerificationCode] = useState('');
-  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
-  // Initialize settings state
-  const [settings, setSettings] = useState<UserSettings>({
-    translation: {
-      defaultSourceLang: 'en',
-      defaultTargetLangs: ['es', 'fr'],
-      defaultTone: 'natural',
-      customTone: '',
-      autoDetectLanguage: true,
-      saveTranslationHistory: true,
-      enableLearning: true,
-    },
-    notifications: {
-      emailNotifications: true,
-      pushNotifications: false,
-      weeklyReports: true,
-      usageAlerts: true,
-      newFeatures: true,
-    },
-    billing: {
-      autoRenew: true,
-      receiveInvoices: true,
-    },
-  });
-
-  // Update setting helper function
-  const updateSetting = (category: keyof UserSettings, key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [key]: value
-      }
-    }));
-  };
-
-  // Get current user
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
+  // Fetch current user profile
+  const { data: userProfile, isLoading } = useQuery({
+    queryKey: ['userProfile'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+      if (!user) throw new Error('Not authenticated');
 
-  // Fetch user profile
-  const { data: profile, refetch: refetchProfile } = useQuery({
-    queryKey: ['userProfile', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
+
+      if (error) throw error;
+
+      // Set form values
+      setFullName(data.full_name || '');
+      setPhoneNumber(data.phone_number || '');
+      setAvatarUrl(data.avatar_url || '');
+
       return data;
     },
-    enabled: !!user,
   });
 
   // Update profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (updates: any) => {
-      if (!user) throw new Error('No user found');
+  const updateProfile = useMutation({
+    mutationFn: async (updates: { full_name?: string; phone_number?: string; avatar_url?: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', user.id);
+
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: 'Profile updated successfully' });
-      refetchProfile();
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      toast.success('Profile updated successfully!');
     },
     onError: (error) => {
-      toast({ title: 'Error updating profile', description: error.message, variant: 'destructive' });
+      console.error('Profile update error:', error);
+      toast.error('Failed to update profile');
     },
   });
 
-  // Photo upload mutation
-  const uploadPhotoMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!user) throw new Error('No user found');
-      
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+  const handleSaveProfile = () => {
+    updateProfile.mutate({
+      full_name: fullName,
+      phone_number: phoneNumber
+    });
+  };
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      // Update profile with new avatar URL
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      return publicUrl;
-    },
-    onSuccess: () => {
-      toast({ title: 'Photo uploaded successfully' });
-      refetchProfile();
-      setIsUploadingPhoto(false);
-    },
-    onError: (error) => {
-      toast({ title: 'Error uploading photo', description: error.message, variant: 'destructive' });
-      setIsUploadingPhoto(false);
-    },
-  });
-
-  // Send email verification
-  const sendEmailVerificationMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: user?.email || '',
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast({ title: 'Verification email sent', description: 'Check your inbox for the verification link' });
-    },
-    onError: (error) => {
-      toast({ title: 'Error sending verification email', description: error.message, variant: 'destructive' });
-    },
-  });
-
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({ title: 'Error', description: 'Please select an image file', variant: 'destructive' });
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
       return;
     }
 
-    // Validate file size (5MB max)
+    // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      toast({ title: 'Error', description: 'Image must be less than 5MB', variant: 'destructive' });
+      toast.error('File size must be less than 5MB');
       return;
     }
 
-    setIsUploadingPhoto(true);
-    uploadPhotoMutation.mutate(file);
-  };
-
-  const handleDeletePhoto = async () => {
-    if (!user || !profile?.avatar_url) return;
-
+    setIsUploading(true);
     try {
-      // Extract file path from URL
-      const urlParts = profile.avatar_url.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const filePath = `${user.id}/${fileName}`;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
-      // Delete from storage
-      const { error: deleteError } = await supabase.storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Delete old avatar if exists
+      if (avatarUrl) {
+        const oldFileName = avatarUrl.split('/').pop();
+        if (oldFileName) {
+          await supabase.storage.from('avatars').remove([`${user.id}/${oldFileName}`]);
+        }
+      }
+
+      // Upload new avatar
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
-        .remove([filePath]);
+        .upload(fileName, file, { upsert: true });
 
-      if (deleteError) throw deleteError;
+      if (uploadError) throw uploadError;
 
-      // Update profile
-      await updateProfileMutation.mutateAsync({ avatar_url: null });
-    } catch (error: any) {
-      toast({ title: 'Error deleting photo', description: error.message, variant: 'destructive' });
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const newAvatarUrl = urlData.publicUrl;
+      setAvatarUrl(newAvatarUrl);
+
+      // Update profile with new avatar URL
+      updateProfile.mutate({ avatar_url: newAvatarUrl });
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleUpdatePassword = async () => {
-    if (!newPassword) {
-      toast({ title: 'Error', description: 'Please enter a new password', variant: 'destructive' });
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-      
-      toast({ title: 'Password updated successfully' });
-      setCurrentPassword('');
-      setNewPassword('');
-    } catch (error: any) {
-      toast({ title: 'Error updating password', description: error.message, variant: 'destructive' });
-    }
+  const handleVerificationComplete = () => {
+    queryClient.invalidateQueries({ queryKey: ['userProfile'] });
   };
 
-  const languages = [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'es', name: 'Spanish', flag: '🇪🇸' },
-    { code: 'fr', name: 'French', flag: '🇫🇷' },
-    { code: 'de', name: 'German', flag: '🇩🇪' },
-    { code: 'it', name: 'Italian', flag: '🇮🇹' },
-    { code: 'pt', name: 'Portuguese', flag: '🇵🇹' },
-    { code: 'ja', name: 'Japanese', flag: '🇯🇵' },
-    { code: 'ko', name: 'Korean', flag: '🇰🇷' },
-    { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
-    { code: 'ar', name: 'Arabic', flag: '🇸🇦' }
-  ];
-
-  const tones = [
-    { value: 'natural', label: 'Natural', description: 'Conversational and authentic' },
-    { value: 'formal', label: 'Formal', description: 'Professional and polished' },
-    { value: 'casual', label: 'Casual', description: 'Relaxed and friendly' },
-    { value: 'humorous', label: 'Humorous', description: 'Light-hearted and witty' },
-    { value: 'serious', label: 'Serious', description: 'Straightforward and direct' },
-    { value: 'poetic', label: 'Poetic', description: 'Artistic and expressive' }
-  ];
-
-  const isPremiumOrBusiness = currentPlan === 'pro' || currentPlan === 'agency';
-  const isBusiness = currentPlan === 'agency';
-
-  if (!user) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <p>Please sign in to access settings.</p>
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-blue-200">Loading your settings...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold">Settings</h2>
-          <p className="text-muted-foreground">Manage your account preferences and configurations</p>
-        </div>
-        <Badge variant={currentPlan === 'free' ? 'secondary' : 'default'} className="text-sm">
-          {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan
-        </Badge>
-      </div>
-
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="profile" className="flex items-center space-x-2">
-            <User className="w-4 h-4" />
-            <span className="hidden sm:inline">Profile</span>
+    <div className="space-y-6">
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 bg-black border border-blue-600">
+          <TabsTrigger value="profile" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
+            <User className="w-4 h-4 mr-2" />
+            Profile
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center space-x-2">
-            <Shield className="w-4 h-4" />
-            <span className="hidden sm:inline">Security</span>
+          <TabsTrigger value="security" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
+            <Shield className="w-4 h-4 mr-2" />
+            Security
           </TabsTrigger>
-          <TabsTrigger value="translation" className="flex items-center space-x-2">
-            <Globe className="w-4 h-4" />
-            <span className="hidden sm:inline">Translation</span>
+          <TabsTrigger value="translation" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
+            <Globe className="w-4 h-4 mr-2" />
+            Translation
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center space-x-2">
-            <Bell className="w-4 h-4" />
-            <span className="hidden sm:inline">Notifications</span>
-          </TabsTrigger>
-          <TabsTrigger value="billing" className="flex items-center space-x-2">
-            <CreditCard className="w-4 h-4" />
-            <span className="hidden sm:inline">Billing</span>
-          </TabsTrigger>
-          <TabsTrigger value="team" className="flex items-center space-x-2" disabled={!isBusiness}>
-            <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">Team</span>
+          <TabsTrigger value="billing" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
+            <CreditCard className="w-4 h-4 mr-2" />
+            Billing
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">
-          <Card>
+          <Card className="bg-black border-blue-600">
             <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>Manage your personal details and preferences</CardDescription>
+              <CardTitle className="text-white">Profile Information</CardTitle>
+              <CardDescription className="text-blue-200">
+                Update your profile information and avatar
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <Avatar className="w-20 h-20">
-                  <AvatarImage src={profile?.avatar_url || ''} alt="Profile photo" />
-                  <AvatarFallback className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-2xl font-bold">
-                    {profile?.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase()}
+              <div className="flex items-center space-x-6">
+                <Avatar className="w-24 h-24">
+                  <AvatarImage src={avatarUrl} alt="Profile picture" />
+                  <AvatarFallback className="bg-purple-700 text-white text-xl">
+                    {fullName ? fullName.charAt(0).toUpperCase() : userProfile?.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="space-y-2">
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" disabled={isUploadingPhoto} asChild>
-                      <label htmlFor="photo-upload" className="cursor-pointer">
-                        {isUploadingPhoto ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <Upload className="w-4 h-4 mr-2" />
-                        )}
-                        Upload Photo
-                      </label>
-                    </Button>
+                <div>
+                  <label className="cursor-pointer">
                     <input
-                      id="photo-upload"
                       type="file"
                       accept="image/*"
+                      onChange={handleImageUpload}
                       className="hidden"
-                      onChange={handlePhotoUpload}
+                      disabled={isUploading}
                     />
-                    {profile?.avatar_url && (
-                      <Button variant="ghost" size="sm" onClick={handleDeletePhoto}>
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">JPG, PNG or GIF, max 5MB</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    value={profile?.full_name || ''}
-                    onChange={(e) => updateProfileMutation.mutate({ full_name: e.target.value })}
-                    placeholder="Enter your full name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email Address</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      id="email"
-                      type="email"
-                      value={user.email || ''}
-                      disabled
-                      className="flex-1"
-                    />
-                    <Badge variant={user.email_confirmed_at ? 'default' : 'secondary'}>
-                      {user.email_confirmed_at ? 'Verified' : 'Unverified'}
-                    </Badge>
-                  </div>
-                  {!user.email_confirmed_at && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mt-2"
-                      onClick={() => sendEmailVerificationMutation.mutate()}
-                      disabled={sendEmailVerificationMutation.isPending}
-                    >
-                      {sendEmailVerificationMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Button variant="outline" disabled={isUploading} className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black">
+                      {isUploading ? (
+                        <>
+                          <Upload className="w-4 h-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
                       ) : (
-                        <Mail className="w-4 h-4 mr-2" />
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Change Avatar
+                        </>
                       )}
-                      Send Verification Email
                     </Button>
-                  )}
+                  </label>
+                  <p className="text-sm text-blue-300 mt-2">
+                    Upload a new profile picture. Max 5MB.
+                  </p>
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="flex space-x-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-sm font-medium text-blue-200 mb-2 block">
+                    Full Name
+                  </label>
                   <Input
-                    id="phone"
-                    type="tel"
-                    value={profile?.phone_number || ''}
-                    onChange={(e) => updateProfileMutation.mutate({ phone_number: e.target.value })}
-                    placeholder="Enter your phone number"
-                    className="flex-1"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter your full name"
+                    className="bg-black border-blue-600 text-white placeholder:text-blue-300"
                   />
-                  <Badge variant={user.phone_confirmed_at ? 'default' : 'secondary'}>
-                    {user.phone_confirmed_at ? 'Verified' : 'Unverified'}
-                  </Badge>
                 </div>
-                {profile?.phone_number && !user.phone_confirmed_at && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2"
-                    onClick={() => setShowPhoneVerification(true)}
+                <div>
+                  <label className="text-sm font-medium text-blue-200 mb-2 block">
+                    Email Address
+                  </label>
+                  <Input
+                    value={userProfile?.email || ''}
+                    disabled
+                    className="bg-gray-900 border-gray-600 text-gray-400"
+                  />
+                  <p className="text-xs text-blue-300 mt-1">Email cannot be changed</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-blue-200 mb-2 block">
+                    Phone Number
+                  </label>
+                  <Input
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="+1 (555) 123-4567"
+                    className="bg-black border-blue-600 text-white placeholder:text-blue-300"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={updateProfile.isPending}
+                    className="w-full bg-purple-700 hover:bg-purple-800 text-white"
                   >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Verify Phone
+                    {updateProfile.isPending ? (
+                      <>
+                        <Save className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Profile
+                      </>
+                    )}
                   </Button>
-                )}
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security & Authentication</CardTitle>
-              <CardDescription>Protect your account with advanced security features</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h4 className="font-medium mb-4">Change Password</h4>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="newPassword"
-                        type={showPassword ? 'text' : 'password'}
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Enter new password"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                  <Button onClick={handleUpdatePassword} disabled={!newPassword}>
-                    Update Password
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <EmailVerification
+            email={userProfile?.email || ''}
+            isVerified={!!userProfile?.email_verified_at}
+            onVerificationComplete={handleVerificationComplete}
+          />
+          
+          <PhoneVerification
+            phoneNumber={phoneNumber}
+            isVerified={!!userProfile?.phone_verified_at}
+            onVerificationComplete={handleVerificationComplete}
+          />
         </TabsContent>
 
         <TabsContent value="translation" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Translation Preferences</CardTitle>
-              <CardDescription>Configure your default translation settings</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="defaultSourceLang">Default Source Language</Label>
-                  <Select value={settings.translation.defaultSourceLang} onValueChange={(value) => updateSetting('translation', 'defaultSourceLang', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {languages.map(lang => (
-                        <SelectItem key={lang.code} value={lang.code}>
-                          {lang.flag} {lang.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="defaultTargetLangs">Default Target Languages</Label>
-                  <div className="space-y-2">
-                    {settings.translation.defaultTargetLangs.map(langCode => {
-                      const lang = languages.find(l => l.code === langCode);
-                      return (
-                        <Badge key={langCode} variant="outline" className="mr-2">
-                          {lang?.flag} {lang?.name}
-                        </Badge>
-                      );
-                    })}
-                    <Button variant="outline" size="sm" className="w-full">
-                      + Add Language
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="defaultTone">Default Tone</Label>
-                <Select value={settings.translation.defaultTone} onValueChange={(value) => updateSetting('translation', 'defaultTone', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tones.map(tone => (
-                      <SelectItem key={tone.value} value={tone.value}>
-                        <div>
-                          <div className="font-medium">{tone.label}</div>
-                          <div className="text-sm text-muted-foreground">{tone.description}</div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                    {isPremiumOrBusiness && <SelectItem value="custom">Custom Tone</SelectItem>}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {isPremiumOrBusiness && settings.translation.defaultTone === 'custom' && (
-                <div>
-                  <Label htmlFor="customTone">Custom Tone Description</Label>
-                  <Input
-                    id="customTone"
-                    placeholder="Describe your desired tone..."
-                    value={settings.translation.customTone}
-                    onChange={(e) => updateSetting('translation', 'customTone', e.target.value)}
-                  />
-                </div>
-              )}
-
-              <Separator />
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Auto-Detect Language</h4>
-                    <p className="text-sm text-muted-foreground">Automatically detect source language</p>
-                  </div>
-                  <Switch
-                    checked={settings.translation.autoDetectLanguage}
-                    onCheckedChange={(checked) => updateSetting('translation', 'autoDetectLanguage', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Save Translation History</h4>
-                    <p className="text-sm text-muted-foreground">Keep a record of your translations</p>
-                  </div>
-                  <Switch
-                    checked={settings.translation.saveTranslationHistory}
-                    onCheckedChange={(checked) => updateSetting('translation', 'saveTranslationHistory', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Enable AI Learning</h4>
-                    <p className="text-sm text-muted-foreground">Improve translations based on your feedback</p>
-                  </div>
-                  <Switch
-                    checked={settings.translation.enableLearning}
-                    onCheckedChange={(checked) => updateSetting('translation', 'enableLearning', checked)}
-                  />
-                </div>
-              </div>
-
-              {isPremiumOrBusiness && (
-                <>
-                  <Separator />
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Dictionary & Glossary</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Button variant="outline">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Dictionary
-                      </Button>
-                      <Button variant="outline">
-                        <Download className="w-4 h-4 mr-2" />
-                        Export Settings
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="notifications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>Choose how you want to be notified</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Email Notifications</h4>
-                    <p className="text-sm text-muted-foreground">Receive updates via email</p>
-                  </div>
-                  <Switch
-                    checked={settings.notifications.emailNotifications}
-                    onCheckedChange={(checked) => updateSetting('notifications', 'emailNotifications', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Push Notifications</h4>
-                    <p className="text-sm text-muted-foreground">Receive browser notifications</p>
-                  </div>
-                  <Switch
-                    checked={settings.notifications.pushNotifications}
-                    onCheckedChange={(checked) => updateSetting('notifications', 'pushNotifications', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Weekly Reports</h4>
-                    <p className="text-sm text-muted-foreground">Get weekly usage summaries</p>
-                  </div>
-                  <Switch
-                    checked={settings.notifications.weeklyReports}
-                    onCheckedChange={(checked) => updateSetting('notifications', 'weeklyReports', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Usage Alerts</h4>
-                    <p className="text-sm text-muted-foreground">Notify when approaching limits</p>
-                  </div>
-                  <Switch
-                    checked={settings.notifications.usageAlerts}
-                    onCheckedChange={(checked) => updateSetting('notifications', 'usageAlerts', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">New Features</h4>
-                    <p className="text-sm text-muted-foreground">Learn about new capabilities</p>
-                  </div>
-                  <Switch
-                    checked={settings.notifications.newFeatures}
-                    onCheckedChange={(checked) => updateSetting('notifications', 'newFeatures', checked)}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <WebsiteTranslator />
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-6">
-          <Card>
+          <Card className="bg-black border-blue-600">
             <CardHeader>
-              <CardTitle>Billing & Subscription</CardTitle>
-              <CardDescription>Manage your subscription and payment settings</CardDescription>
+              <CardTitle className="text-white">Subscription & Billing</CardTitle>
+              <CardDescription className="text-blue-200">
+                Manage your subscription and view billing history
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="p-4 bg-muted rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium">Current Plan</h4>
-                  <Badge variant={currentPlan === 'free' ? 'secondary' : 'default'}>
-                    {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {currentPlan === 'free' && 'Get more features with a Premium or Business plan'}
-                  {currentPlan === 'pro' && 'Premium Plan - Advanced features for professionals'}
-                  {currentPlan === 'agency' && 'Business Plan - Full features for teams'}
-                </p>
-                {currentPlan === 'free' && (
-                  <Button onClick={onUpgrade}>
-                    Upgrade Plan
-                  </Button>
-                )}
-              </div>
-
-              {currentPlan !== 'free' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium">Auto-Renewal</h4>
-                      <p className="text-sm text-muted-foreground">Automatically renew subscription</p>
-                    </div>
-                    <Switch
-                      checked={settings.billing.autoRenew}
-                      onCheckedChange={(checked) => updateSetting('billing', 'autoRenew', checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium">Email Invoices</h4>
-                      <p className="text-sm text-muted-foreground">Receive invoices via email</p>
-                    </div>
-                    <Switch
-                      checked={settings.billing.receiveInvoices}
-                      onCheckedChange={(checked) => updateSetting('billing', 'receiveInvoices', checked)}
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-2">
-                    <Button variant="outline" className="w-full">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Invoice
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Update Payment Method
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="team" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Team Management</CardTitle>
-              <CardDescription>Manage your team members and collaboration settings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {!isBusiness ? (
-                <div className="text-center py-12">
-                  <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Team Features Unavailable</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Upgrade to Business plan to manage team members and collaboration
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 border border-blue-600 rounded-lg">
+                <div>
+                  <h3 className="font-semibold text-white">Current Plan</h3>
+                  <p className="text-blue-200">
+                    You are currently on the <Badge className="ml-1 bg-purple-700 text-white">{currentPlan}</Badge> plan
                   </p>
-                  <Button onClick={onUpgrade}>
-                    Upgrade to Business
-                  </Button>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Team Members (3/5)</h4>
-                    <Button size="sm">
-                      <Users className="w-4 h-4 mr-2" />
-                      Invite Member
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    {[
-                      { name: 'John Doe', email: 'john@example.com', role: 'Owner' },
-                      { name: 'Jane Smith', email: 'jane@example.com', role: 'Admin' },
-                      { name: 'Bob Johnson', email: 'bob@example.com', role: 'Member' }
-                    ].map((member, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{member.name}</p>
-                          <p className="text-sm text-muted-foreground">{member.email}</p>
-                        </div>
-                        <Badge variant="outline">{member.role}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                <Button onClick={onUpgrade} className="bg-purple-700 hover:bg-purple-800 text-white">
+                  Upgrade Plan
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
