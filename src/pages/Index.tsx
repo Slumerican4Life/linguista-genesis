@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,7 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
@@ -39,59 +39,103 @@ const Index = () => {
     lyra: 'idle'
   });
 
-  // Authentication handling
+  // Authentication handling with better error handling
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
       setUser(session?.user ?? null);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        toast.success(`Welcome back, ${session.user.email}!`);
+      } else if (event === 'SIGNED_OUT') {
+        toast.info('Signed out successfully');
+      }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+        toast.error('Authentication error occurred');
+      } else {
+        setUser(session?.user ?? null);
+        console.log('Initial session:', session?.user?.email);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   // Fetch user profile with role and subscriptions
-  const { data: userProfile } = useQuery({
+  const { data: userProfile, error: profileError } = useQuery({
     queryKey: ['userProfile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await supabase
+      console.log('Fetching profile for user:', user.id);
+      const { data, error } = await supabase
         .from('profiles')
         .select('*, subscriptions(*)')
         .eq('id', user.id)
         .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        throw error;
+      }
+      console.log('Profile data:', data);
       return data;
     },
     enabled: !!user,
   });
 
-  // Fetch usage data
+  // Fetch real usage data
   const { data: usageData } = useQuery({
     queryKey: ['usage', user?.id],
     queryFn: async () => {
       if (!user) return null;
       const today = new Date().toISOString().split('T')[0];
-      const { data } = await supabase
+      
+      // Get today's usage
+      const { data: todayUsage } = await supabase
         .from('usage_metrics')
         .select('*')
         .eq('user_id', user.id)
         .eq('date', today)
-        .single();
+        .maybeSingle();
+      
+      // Get subscription data for limits
+      const subscription = userProfile?.subscriptions?.[0];
+      const tier = subscription?.tier || 'free';
+      
+      // Define limits based on tier
+      const limits = {
+        free: { words: 500, languages: 3 },
+        professional: { words: 10000, languages: 10 },
+        premium: { words: 50000, languages: 25 },
+        business: { words: 200000, languages: 50 }
+      };
+      
+      const tierLimits = limits[tier as keyof typeof limits] || limits.free;
       
       return {
-        wordsUsed: data?.words_translated || 0,
-        wordsLimit: 500, // Default free tier limit
-        languagesUsed: 2,
-        languagesLimit: 5,
-        currentPlan: userProfile?.subscriptions?.[0]?.tier || 'free',
-        daysUntilReset: 15,
-        translationsToday: data?.requests_made || 0
+        wordsUsed: todayUsage?.words_translated || 0,
+        wordsLimit: tierLimits.words,
+        languagesUsed: selectedLanguages.length,
+        languagesLimit: tierLimits.languages,
+        currentPlan: tier,
+        daysUntilReset: 30 - new Date().getDate(),
+        translationsToday: todayUsage?.requests_made || 0
       };
     },
-    enabled: !!user,
+    enabled: !!user && !!userProfile,
   });
+
+  // Show profile error if exists
+  useEffect(() => {
+    if (profileError) {
+      console.error('Profile error:', profileError);
+      toast.error('Failed to load user profile. Please try refreshing the page.');
+    }
+  }, [profileError]);
 
   // Get current plan from user profile
   const currentPlan = userProfile?.subscriptions?.[0]?.tier || 'free';
@@ -134,6 +178,7 @@ const Index = () => {
       }
     } catch (error) {
       console.error('Translation error:', error);
+      toast.error('Translation failed. Please try again.');
       // Fallback to mock translations
       const mockTranslations: Record<string, string> = {};
       selectedLanguages.forEach(lang => {
@@ -147,24 +192,32 @@ const Index = () => {
 
   const handleSelectPlan = (planId: string) => {
     console.log('Selected plan:', planId);
-    // Here you would integrate with Stripe
+    toast.info('Stripe integration will be configured for plan selection');
   };
 
   const handleAuthSuccess = () => {
     console.log('Authentication successful');
+    setIsAuthModalOpen(false);
+    toast.success('Successfully signed in!');
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Sign out error:', error);
+      toast.error('Error signing out');
+    } else {
+      setUser(null);
+      setActiveTab('translate');
+    }
   };
 
-  // Check if user is admin
+  // Check if user is admin (owner or manager)
   const isAdmin = userProfile?.role === 'owner' || userProfile?.role === 'manager';
 
-  // Free tier ads component
+  // Free tier ads component (only show for free users)
   const AdBanner = ({ position }: { position: 'top' | 'middle' | 'bottom' }) => {
-    if (userProfile?.role !== 'user' && userProfile?.role !== undefined) return null;
+    if (!user || currentPlan !== 'free') return null;
     
     return (
       <div className={`bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-center ${
@@ -439,11 +492,25 @@ const Index = () => {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard">
-            {usageData && (
-              <UsageDashboard 
-                usage={usageData}
-                onUpgrade={() => setActiveTab('pricing')}
-              />
+            {user ? (
+              usageData ? (
+                <UsageDashboard 
+                  usage={usageData}
+                  onUpgrade={() => setActiveTab('pricing')}
+                />
+              ) : (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+                    <p className="text-purple-200">Loading your dashboard...</p>
+                  </div>
+                </div>
+              )
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-purple-200 mb-4">Please sign in to view your dashboard</p>
+                <Button onClick={() => setIsAuthModalOpen(true)}>Sign In</Button>
+              </div>
             )}
           </TabsContent>
 
@@ -464,10 +531,17 @@ const Index = () => {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <SettingsPanel 
-              currentPlan={currentPlan}
-              onUpgrade={() => setActiveTab('pricing')}
-            />
+            {user ? (
+              <SettingsPanel 
+                currentPlan={currentPlan}
+                onUpgrade={() => setActiveTab('pricing')}
+              />
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-purple-200 mb-4">Please sign in to access settings</p>
+                <Button onClick={() => setIsAuthModalOpen(true)}>Sign In</Button>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 

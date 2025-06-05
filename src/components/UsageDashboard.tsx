@@ -22,8 +22,8 @@ interface UsageDashboardProps {
 }
 
 export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade }) => {
-  const wordsPercentage = (usage.wordsUsed / usage.wordsLimit) * 100;
-  const languagesPercentage = (usage.languagesUsed / usage.languagesLimit) * 100;
+  const wordsPercentage = usage.wordsLimit > 0 ? (usage.wordsUsed / usage.wordsLimit) * 100 : 0;
+  const languagesPercentage = usage.languagesLimit > 0 ? (usage.languagesUsed / usage.languagesLimit) * 100 : 0;
   const isNearLimit = wordsPercentage >= 80;
 
   const formatNumber = (num: number) => {
@@ -32,7 +32,6 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade
     return num.toString();
   };
 
-  // Get plan display name
   const getPlanDisplayName = (plan: string) => {
     switch (plan) {
       case 'free': return 'Free';
@@ -43,16 +42,31 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade
     }
   };
 
+  const getPlanBenefits = (plan: string) => {
+    switch (plan) {
+      case 'free': 
+        return 'Basic translation features with limited usage';
+      case 'professional': 
+        return 'Advanced features with higher limits';
+      case 'premium': 
+        return 'Premium AI models with extensive usage';
+      case 'business': 
+        return 'Enterprise features with unlimited usage';
+      default: 
+        return 'Standard features available';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold flex items-center space-x-2">
+        <h2 className="text-2xl font-bold flex items-center space-x-2 text-white">
           <BarChart3 className="w-6 h-6 text-blue-500" />
           <span>Usage Dashboard</span>
         </h2>
         <Badge 
           variant={usage.currentPlan === 'free' ? 'secondary' : 'default'}
-          className="text-sm font-semibold px-3 py-1"
+          className="text-sm font-semibold px-3 py-1 bg-purple-600/20 text-purple-200 border-purple-400"
         >
           {getPlanDisplayName(usage.currentPlan)} Plan
         </Badge>
@@ -60,28 +74,28 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Words Usage */}
-        <Card className={`${isNearLimit ? 'ring-2 ring-amber-500 bg-amber-50/50 dark:bg-amber-950/20' : ''} transition-all duration-300`}>
+        <Card className={`${isNearLimit ? 'ring-2 ring-amber-500 bg-amber-50/5 dark:bg-amber-950/20' : 'bg-black/60'} border border-purple-500/30 backdrop-blur-sm transition-all duration-300`}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center justify-between text-white">
               <span>Words Used</span>
               {isNearLimit && <AlertTriangle className="w-5 h-5 text-amber-500" />}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-purple-200">
               {formatNumber(usage.wordsUsed)} of {formatNumber(usage.wordsLimit)} words
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Progress 
               value={wordsPercentage} 
-              className={`h-3 ${isNearLimit ? 'bg-amber-100' : ''}`}
+              className={`h-3 ${isNearLimit ? 'bg-amber-100/20' : 'bg-purple-100/20'}`}
             />
-            <div className="flex justify-between text-sm text-muted-foreground mt-2">
+            <div className="flex justify-between text-sm text-purple-300 mt-2">
               <span>{wordsPercentage.toFixed(1)}% used</span>
-              <span>{formatNumber(usage.wordsLimit - usage.wordsUsed)} remaining</span>
+              <span>{formatNumber(Math.max(0, usage.wordsLimit - usage.wordsUsed))} remaining</span>
             </div>
-            {isNearLimit && (
-              <div className="mt-3 p-2 bg-amber-100 dark:bg-amber-950/30 rounded-lg">
-                <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">
+            {isNearLimit && usage.wordsUsed > 0 && (
+              <div className="mt-3 p-2 bg-amber-100/10 dark:bg-amber-950/30 rounded-lg border border-amber-500/20">
+                <p className="text-sm text-amber-300 font-medium">
                   ⚠️ You're running low on words. Consider upgrading!
                 </p>
               </div>
@@ -90,26 +104,26 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade
         </Card>
 
         {/* Languages Usage */}
-        <Card>
+        <Card className="bg-black/60 border border-purple-500/30 backdrop-blur-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Languages</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg text-white">Languages Available</CardTitle>
+            <CardDescription className="text-purple-200">
               {usage.languagesUsed} of {usage.languagesLimit === Infinity ? '∞' : usage.languagesLimit} languages
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Progress 
-              value={usage.languagesLimit === Infinity ? 0 : languagesPercentage} 
-              className="h-3"
+              value={usage.languagesLimit === Infinity ? 20 : languagesPercentage} 
+              className="h-3 bg-purple-100/20"
             />
-            <div className="flex justify-between text-sm text-muted-foreground mt-2">
+            <div className="flex justify-between text-sm text-purple-300 mt-2">
               <span>
-                {usage.languagesLimit === Infinity ? 'Unlimited' : `${languagesPercentage.toFixed(1)}% used`}
+                {usage.languagesLimit === Infinity ? 'Unlimited access' : `${languagesPercentage.toFixed(1)}% used`}
               </span>
               <span>
                 {usage.languagesLimit === Infinity 
                   ? 'No limits' 
-                  : `${usage.languagesLimit - usage.languagesUsed} remaining`
+                  : `${Math.max(0, usage.languagesLimit - usage.languagesUsed)} remaining`
                 }
               </span>
             </div>
@@ -117,28 +131,28 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade
         </Card>
 
         {/* Billing Cycle */}
-        <Card>
+        <Card className="bg-black/60 border border-purple-500/30 backdrop-blur-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center space-x-2">
+            <CardTitle className="text-lg flex items-center space-x-2 text-white">
               <Calendar className="w-5 h-5" />
               <span>Billing Cycle</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-purple-200">
               {usage.daysUntilReset} days until reset
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Translations today</span>
-                <Badge variant="outline" className="flex items-center space-x-1">
+                <span className="text-sm text-purple-300">Translations today</span>
+                <Badge variant="outline" className="flex items-center space-x-1 border-purple-400 text-purple-200">
                   <TrendingUp className="w-3 h-3" />
                   <span>{usage.translationsToday}</span>
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Next reset</span>
-                <span className="text-sm font-medium">
+                <span className="text-sm text-purple-300">Next reset</span>
+                <span className="text-sm font-medium text-white">
                   {new Date(Date.now() + usage.daysUntilReset * 24 * 60 * 60 * 1000).toLocaleDateString()}
                 </span>
               </div>
@@ -149,56 +163,80 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
+        <Card className="bg-gradient-to-r from-blue-950/40 to-purple-950/40 border border-blue-500/30 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Zap className="w-5 h-5 text-blue-500" />
-              <span>Need More Words?</span>
+            <CardTitle className="flex items-center space-x-2 text-white">
+              <Zap className="w-5 h-5 text-blue-400" />
+              <span>Need More Capacity?</span>
             </CardTitle>
-            <CardDescription>
-              Upgrade your plan or buy one-time credits to continue translating
+            <CardDescription className="text-blue-200">
+              {usage.currentPlan === 'free' 
+                ? 'Upgrade your plan to get more words and advanced features'
+                : 'You can always upgrade to a higher tier for more capacity'
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex space-x-3">
-              <Button onClick={onUpgrade} className="flex-1">
+              <Button onClick={onUpgrade} className="flex-1 bg-blue-600 hover:bg-blue-700">
                 Upgrade Plan
               </Button>
-              <Button variant="outline" className="flex-1">
-                Buy Credits
-              </Button>
+              {usage.currentPlan !== 'free' && (
+                <Button variant="outline" className="flex-1 border-blue-400 text-blue-300 hover:bg-blue-900/20">
+                  Buy Credits
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border-emerald-200 dark:border-emerald-800">
+        <Card className="bg-gradient-to-r from-emerald-950/40 to-teal-950/40 border border-emerald-500/30 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-emerald-500" />
-              <span>Usage Insights</span>
+            <CardTitle className="flex items-center space-x-2 text-white">
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+              <span>Plan Information</span>
             </CardTitle>
-            <CardDescription>
-              Your translation patterns and recommendations
+            <CardDescription className="text-emerald-200">
+              {getPlanBenefits(usage.currentPlan)}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Most used language:</span>
-                <span className="font-medium">Spanish</span>
+                <span className="text-emerald-300">Current plan:</span>
+                <span className="font-medium text-white">{getPlanDisplayName(usage.currentPlan)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Avg. words/translation:</span>
-                <span className="font-medium">247</span>
+                <span className="text-emerald-300">Word limit:</span>
+                <span className="font-medium text-white">{formatNumber(usage.wordsLimit)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Favorite tone:</span>
-                <span className="font-medium">Professional</span>
+                <span className="text-emerald-300">Language access:</span>
+                <span className="font-medium text-white">
+                  {usage.languagesLimit === Infinity ? 'Unlimited' : usage.languagesLimit}
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Getting Started Message for New Users */}
+      {usage.translationsToday === 0 && usage.wordsUsed === 0 && (
+        <Card className="bg-gradient-to-r from-purple-950/40 to-pink-950/40 border border-purple-500/30 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-white">Welcome to Linguista! 🚀</CardTitle>
+            <CardDescription className="text-purple-200">
+              You haven't made any translations yet. Head to the Translate tab to get started with our AI-powered translation agents.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.hash = '#translate'} className="bg-purple-600 hover:bg-purple-700">
+              Start Translating
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
