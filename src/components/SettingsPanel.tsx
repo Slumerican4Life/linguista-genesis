@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,29 @@ interface SettingsPanelProps {
   onUpgrade: () => void;
 }
 
+interface UserSettings {
+  translation: {
+    defaultSourceLang: string;
+    defaultTargetLangs: string[];
+    defaultTone: string;
+    customTone: string;
+    autoDetectLanguage: boolean;
+    saveTranslationHistory: boolean;
+    enableLearning: boolean;
+  };
+  notifications: {
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    weeklyReports: boolean;
+    usageAlerts: boolean;
+    newFeatures: boolean;
+  };
+  billing: {
+    autoRenew: boolean;
+    receiveInvoices: boolean;
+  };
+}
+
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpgrade }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -31,6 +55,41 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
   const [phoneVerificationCode, setPhoneVerificationCode] = useState('');
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  // Initialize settings state
+  const [settings, setSettings] = useState<UserSettings>({
+    translation: {
+      defaultSourceLang: 'en',
+      defaultTargetLangs: ['es', 'fr'],
+      defaultTone: 'natural',
+      customTone: '',
+      autoDetectLanguage: true,
+      saveTranslationHistory: true,
+      enableLearning: true,
+    },
+    notifications: {
+      emailNotifications: true,
+      pushNotifications: false,
+      weeklyReports: true,
+      usageAlerts: true,
+      newFeatures: true,
+    },
+    billing: {
+      autoRenew: true,
+      receiveInvoices: true,
+    },
+  });
+
+  // Update setting helper function
+  const updateSetting = (category: keyof UserSettings, key: string, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: value
+      }
+    }));
+  };
 
   // Get current user
   const { data: user } = useQuery({
@@ -82,7 +141,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -159,7 +218,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
       // Extract file path from URL
       const urlParts = profile.avatar_url.split('/');
       const fileName = urlParts[urlParts.length - 1];
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       // Delete from storage
       const { error: deleteError } = await supabase.storage
