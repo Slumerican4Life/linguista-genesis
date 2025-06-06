@@ -56,6 +56,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
           throw new Error("Passwords don't match");
         }
 
+        // Use mobile-friendly redirect URL
+        const redirectUrl = window.location.origin + '/';
+
         const { data, error } = await supabase.auth.signUp({
           email: authMethod === 'email' ? formData.email : formData.phone,
           password: formData.password,
@@ -64,12 +67,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
               first_name: formData.firstName,
               last_name: formData.lastName
             },
-            emailRedirectTo: `${window.location.origin}/`
+            emailRedirectTo: redirectUrl
           }
         });
 
         if (error) throw error;
 
+        console.log('Signup successful for mobile/web');
+        
         toast({
           title: "Account created!",
           description: "Please check your email to verify your account."
@@ -78,6 +83,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         onClose();
       }
     } catch (error: any) {
+      console.error('Authentication error:', error);
       toast({
         title: "Authentication Error",
         description: error.message,
