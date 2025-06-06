@@ -83,8 +83,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
     });
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleImageUpload = async (file: File) => {
     if (!file) return;
 
     // Validate file type
@@ -101,19 +100,27 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
     }
 
     setIsUploading(true);
+    console.log('Starting image upload...');
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        toast.error('You must be logged in to upload an avatar');
+        return;
+      }
+
+      console.log('User authenticated, proceeding with upload for user:', user.id);
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
+
+      console.log('Uploading file to path:', fileName);
 
       // Delete old avatar if exists
       if (avatarUrl) {
-        const oldFileName = avatarUrl.split('/').pop();
-        if (oldFileName) {
-          await supabase.storage.from('avatars').remove([`${user.id}/${oldFileName}`]);
-        }
+        const oldPath = avatarUrl.split('/').slice(-2).join('/'); // Get user_id/filename part
+        console.log('Attempting to delete old avatar:', oldPath);
+        await supabase.storage.from('avatars').remove([oldPath]);
       }
 
       // Upload new avatar
@@ -121,7 +128,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
         .from('avatars')
         .upload(fileName, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Upload successful:', uploadData);
 
       // Get public URL
       const { data: urlData } = supabase.storage
@@ -129,6 +141,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
         .getPublicUrl(fileName);
 
       const newAvatarUrl = urlData.publicUrl;
+      console.log('Generated public URL:', newAvatarUrl);
       setAvatarUrl(newAvatarUrl);
 
       // Update profile with new avatar URL
@@ -139,6 +152,20 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
       toast.error('Failed to upload image. Please try again.');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    const fileInput = document.getElementById('avatar-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
     }
   };
 
@@ -200,28 +227,32 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      disabled={isUploading}
-                    />
-                    <Button variant="outline" disabled={isUploading} className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black">
-                      {isUploading ? (
-                        <>
-                          <Upload className="w-4 h-4 mr-2 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Change Avatar
-                        </>
-                      )}
-                    </Button>
-                  </label>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                  <Button 
+                    variant="outline" 
+                    disabled={isUploading} 
+                    className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black"
+                    onClick={triggerFileInput}
+                  >
+                    {isUploading ? (
+                      <>
+                        <Upload className="w-4 h-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Change Avatar
+                      </>
+                    )}
+                  </Button>
                   <p className="text-sm text-blue-300 mt-2">
                     Upload a new profile picture. Max 5MB.
                   </p>
