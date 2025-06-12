@@ -39,7 +39,7 @@ const Index = () => {
     lyra: 'idle'
   });
 
-  // Authentication handling with better error handling
+  // Enhanced authentication handling with better session management
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
@@ -47,11 +47,14 @@ const Index = () => {
       
       if (event === 'SIGNED_IN' && session?.user) {
         toast.success(`Welcome back, ${session.user.email}!`);
+        // Close auth modal if it's open
+        setIsAuthModalOpen(false);
       } else if (event === 'SIGNED_OUT') {
         toast.info('Signed out successfully');
       }
     });
 
+    // Check for existing session on page load
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error('Error getting session:', error);
@@ -276,10 +279,15 @@ const Index = () => {
                   </Button>
                 </div>
               ) : (
-                <Button onClick={() => setIsAuthModalOpen(true)} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button onClick={() => setIsAuthModalOpen(true)} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Sign In
+                  </Button>
+                  <Button onClick={() => { setIsLogin(false); setIsAuthModalOpen(true); }} size="sm" variant="outline" className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black">
+                    Sign Up
+                  </Button>
+                </div>
               )}
               <ThemeToggle />
             </div>

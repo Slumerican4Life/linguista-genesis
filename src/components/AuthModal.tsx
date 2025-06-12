@@ -21,7 +21,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
@@ -56,8 +55,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
           throw new Error("Passwords don't match");
         }
 
-        // Use mobile-friendly redirect URL
-        const redirectUrl = window.location.origin + '/';
+        // Use the current page URL as the redirect
+        const redirectUrl = window.location.href;
 
         const { data, error } = await supabase.auth.signUp({
           email: authMethod === 'email' ? formData.email : formData.phone,
@@ -73,11 +72,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
 
         if (error) throw error;
 
-        console.log('Signup successful for mobile/web');
+        console.log('Signup successful, redirect URL:', redirectUrl);
         
         toast({
           title: "Account created!",
-          description: "Please check your email to verify your account."
+          description: "Please check your email to verify your account. You'll be redirected back here after verification."
         });
         
         onClose();
