@@ -14,11 +14,12 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAuthSuccess: () => void;
+  isLogin?: boolean;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess, isLogin = true }) => {
   const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
-  const [isLogin, setIsLogin] = useState(true);
+  const [currentMode, setCurrentMode] = useState(isLogin);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,12 +31,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     lastName: ''
   });
 
+  // Helper function to mask phone numbers for security
+  const maskPhoneNumber = (phone: string) => {
+    if (phone.length <= 2) return phone;
+    const lastTwo = phone.slice(-2);
+    const masked = '*'.repeat(phone.length - 2);
+    return masked + lastTwo;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      if (isLogin) {
+      if (currentMode) {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: authMethod === 'email' ? formData.email : formData.phone,
           password: formData.password
@@ -98,17 +107,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            {isLogin ? 'Welcome Back' : 'Join Linguista'}
+            {currentMode ? 'Welcome Back' : 'Join Linguista'}
           </DialogTitle>
           <DialogDescription>
-            {isLogin 
+            {currentMode 
               ? 'Sign in to continue your translation journey' 
               : 'Create your account to start translating with AI agents'
             }
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={isLogin ? 'login' : 'signup'} onValueChange={(value) => setIsLogin(value === 'login')}>
+        <Tabs value={currentMode ? 'login' : 'signup'} onValueChange={(value) => setCurrentMode(value === 'login')}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -149,7 +158,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                       id={authMethod}
                       type={authMethod === 'email' ? 'email' : 'tel'}
                       placeholder={authMethod === 'email' ? 'your@email.com' : '+1 (555) 123-4567'}
-                      value={authMethod === 'email' ? formData.email : formData.phone}
+                      value={authMethod === 'email' ? formData.email : (formData.phone ? maskPhoneNumber(formData.phone) : '')}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
                         [authMethod]: e.target.value
@@ -248,7 +257,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                       id={`signup-${authMethod}`}
                       type={authMethod === 'email' ? 'email' : 'tel'}
                       placeholder={authMethod === 'email' ? 'your@email.com' : '+1 (555) 123-4567'}
-                      value={authMethod === 'email' ? formData.email : formData.phone}
+                      value={authMethod === 'email' ? formData.email : (formData.phone ? maskPhoneNumber(formData.phone) : '')}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
                         [authMethod]: e.target.value

@@ -17,6 +17,7 @@ import { AuthModal } from '@/components/AuthModal';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { LyraOverlay } from '@/components/LyraOverlay';
 import { AdminDashboard } from '@/components/AdminDashboard';
+import { WebsiteTranslator } from '@/components/translation/WebsiteTranslator';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useQuery } from '@tanstack/react-query';
@@ -31,6 +32,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('translate');
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [agentProgress, setAgentProgress] = useState<Record<string, 'idle' | 'processing' | 'complete'>>({
     security: 'idle',
     prism: 'idle',
@@ -280,11 +282,11 @@ const Index = () => {
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
-                  <Button onClick={() => setIsAuthModalOpen(true)} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button onClick={() => { setIsSignUp(false); setIsAuthModalOpen(true); }} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
                     <LogIn className="w-4 h-4 mr-2" />
                     Sign In
                   </Button>
-                  <Button onClick={() => { setIsLogin(false); setIsAuthModalOpen(true); }} size="sm" variant="outline" className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black">
+                  <Button onClick={() => { setIsSignUp(true); setIsAuthModalOpen(true); }} size="sm" variant="outline" className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black">
                     Sign Up
                   </Button>
                 </div>
@@ -303,10 +305,14 @@ const Index = () => {
       <main className="relative z-10 container mx-auto px-4 py-8">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5 h-12 bg-black border border-blue-600">
+          <TabsList className="grid w-full grid-cols-6 h-12 bg-black border border-blue-600">
             <TabsTrigger value="translate" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
               <Sparkles className="w-4 h-4" />
               <span>Translate</span>
+            </TabsTrigger>
+            <TabsTrigger value="website" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
+              <Globe className="w-4 h-4" />
+              <span>Website</span>
             </TabsTrigger>
             <TabsTrigger value="dashboard" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
               <BarChart3 className="w-4 h-4" />
@@ -494,6 +500,11 @@ const Index = () => {
             )}
           </TabsContent>
 
+          {/* Website Translation Tab */}
+          <TabsContent value="website">
+            <WebsiteTranslator />
+          </TabsContent>
+
           {/* Dashboard Tab */}
           <TabsContent value="dashboard">
             {user ? (
@@ -558,6 +569,7 @@ const Index = () => {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}
+        isLogin={!isSignUp}
       />
 
       {/* Lyra Overlay */}
