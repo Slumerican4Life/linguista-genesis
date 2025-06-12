@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { User, Upload, Save, Shield, Globe, CreditCard, Bell } from 'lucide-react';
+import { User, Upload, Save, Shield, Globe, CreditCard, Bell, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +20,7 @@ interface SettingsPanelProps {
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpgrade }) => {
   const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -50,16 +50,27 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
     },
   });
 
-  // Update profile mutation
+  // Update profile mutation with email support
   const updateProfile = useMutation({
-    mutationFn: async (updates: { full_name?: string; phone_number?: string; avatar_url?: string }) => {
+    mutationFn: async (updates: { full_name?: string; phone_number?: string; avatar_url?: string; email?: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // If email is being updated, update auth email first
+      if (updates.email && updates.email !== user.email) {
+        const { error: emailError } = await supabase.auth.updateUser({
+          email: updates.email
+        });
+        if (emailError) throw emailError;
+      }
+
+      // Update profile table
       const { error } = await supabase
         .from('profiles')
         .update({
-          ...updates,
+          full_name: updates.full_name,
+          phone_number: updates.phone_number,
+          avatar_url: updates.avatar_url,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -79,7 +90,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
   const handleSaveProfile = () => {
     updateProfile.mutate({
       full_name: fullName,
-      phone_number: phoneNumber
+      phone_number: phoneNumber,
+      email: email
     });
   };
 
@@ -275,12 +287,28 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
                   <label className="text-sm font-medium text-blue-200 mb-2 block">
                     Email Address
                   </label>
-                  <Input
-                    value={userProfile?.email || ''}
-                    disabled
-                    className="bg-gray-900 border-gray-600 text-gray-400"
-                  />
-                  <p className="text-xs text-blue-300 mt-1">Email cannot be changed</p>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      className="bg-black border-blue-600 text-white placeholder:text-blue-300"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black"
+                      onClick={() => {
+                        if (email !== userProfile?.email) {
+                          toast.info('Click Save Profile to update your email. You\'ll need to verify the new email address.');
+                        }
+                      }}
+                    >
+                      <Mail className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-blue-300 mt-1">You'll need to verify a new email address</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-blue-200 mb-2 block">

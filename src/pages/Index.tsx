@@ -18,6 +18,8 @@ import { SettingsPanel } from '@/components/SettingsPanel';
 import { LyraOverlay } from '@/components/LyraOverlay';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { WebsiteTranslator } from '@/components/translation/WebsiteTranslator';
+import { AdSenseAd } from '@/components/AdSenseAd';
+import { AdSenseScript } from '@/components/AdSenseScript';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useQuery } from '@tanstack/react-query';
@@ -225,21 +227,24 @@ const Index = () => {
     if (!user || currentPlan !== 'free') return null;
     
     return (
-      <div className={`bg-black border border-red-500 rounded-lg p-4 text-center ${
+      <div className={`${
         position === 'top' ? 'mb-8' : position === 'middle' ? 'my-8' : 'mt-8'
       }`}>
-        <p className="text-sm text-red-400 mb-2">
-          📢 Remove ads and unlock premium features
-        </p>
-        <Button size="sm" onClick={() => setActiveTab('pricing')} className="bg-red-600 hover:bg-red-700 text-white">
-          Upgrade Now
-        </Button>
+        <AdSenseAd
+          adSlot="1234567890" // Replace with your actual ad slot ID
+          adFormat="auto"
+          className="max-w-full"
+          style={{ minHeight: '100px', backgroundColor: '#1a1a1a', border: '1px solid #3b82f6' }}
+        />
       </div>
     );
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Add AdSense script to head */}
+      <AdSenseScript />
+      
       {/* Header */}
       <header className="relative z-10 border-b border-blue-600 bg-black">
         <div className="container mx-auto px-4 py-6">
