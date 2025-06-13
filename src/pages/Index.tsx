@@ -310,32 +310,40 @@ const Index = () => {
       <main className="relative z-10 container mx-auto px-4 py-8">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-6 h-12 bg-black border border-blue-600">
-            <TabsTrigger value="translate" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
-              <Sparkles className="w-4 h-4" />
-              <span>Translate</span>
+          <TabsList className="grid w-full h-12 bg-black border border-blue-600" style={{
+            gridTemplateColumns: isAdmin ? 'repeat(6, 1fr)' : 'repeat(5, 1fr)'
+          }}>
+            <TabsTrigger value="translate" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Translate</span>
+              <span className="sm:hidden">Text</span>
             </TabsTrigger>
-            <TabsTrigger value="website" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
-              <Globe className="w-4 h-4" />
-              <span>Website</span>
+            <TabsTrigger value="website" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
+              <Globe className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Website</span>
+              <span className="sm:hidden">Web</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
-              <BarChart3 className="w-4 h-4" />
-              <span>Dashboard</span>
+            <TabsTrigger value="dashboard" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
+              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+              <span className="sm:hidden">Stats</span>
             </TabsTrigger>
             {isAdmin && (
-              <TabsTrigger value="admin" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
-                <Users className="w-4 h-4" />
-                <span>Admin</span>
+              <TabsTrigger value="admin" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
+                <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Admin</span>
+                <span className="sm:hidden">Admin</span>
               </TabsTrigger>
             )}
-            <TabsTrigger value="pricing" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
-              <CreditCard className="w-4 h-4" />
-              <span>Pricing</span>
+            <TabsTrigger value="pricing" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
+              <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Pricing</span>
+              <span className="sm:hidden">Plans</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2 text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
-              <Settings className="w-4 h-4" />
-              <span>Settings</span>
+            <TabsTrigger value="settings" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
+              <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Settings</span>
+              <span className="sm:hidden">Config</span>
             </TabsTrigger>
           </TabsList>
 
