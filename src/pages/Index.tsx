@@ -250,15 +250,15 @@ const Index = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl flex items-center justify-center border border-purple-500">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl flex items-center justify-center border-2 border-white/20 shadow-lg">
                 <img 
                   src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
                   alt="Linguista Logo" 
-                  className="w-8 h-8 object-contain relative z-10"
+                  className="w-10 h-10 object-contain brightness-150 contrast-125 drop-shadow-lg"
                 />
               </div>
               <div>
-                <h1 className="text-3xl font-black text-white">
+                <h1 className="text-3xl font-black text-white drop-shadow-lg">
                   Linguista
                 </h1>
                 <p className="text-sm text-blue-300 font-semibold">by Neuronix ~ Language Rewired</p>

@@ -304,6 +304,42 @@ export type Database = {
           },
         ]
       }
+      website_crawl_status: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          progress: Json | null
+          result_data: Json | null
+          status: string
+          updated_at: string
+          url: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress?: Json | null
+          result_data?: Json | null
+          status?: string
+          updated_at?: string
+          url: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress?: Json | null
+          result_data?: Json | null
+          status?: string
+          updated_at?: string
+          url?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

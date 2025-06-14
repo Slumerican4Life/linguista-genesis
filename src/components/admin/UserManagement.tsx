@@ -21,7 +21,7 @@ export const UserManagement = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch all users
+  // Fetch all users with search functionality
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users', searchTerm],
     queryFn: async () => {
@@ -90,7 +90,7 @@ export const UserManagement = () => {
         <CardHeader>
           <CardTitle className="text-purple-100">User Search & Management</CardTitle>
           <CardDescription className="text-purple-200">
-            Search users by email, name, or phone number
+            Search users by email, name, or phone number. Click "Gift Plan" to give users subscription benefits.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -104,7 +104,20 @@ export const UserManagement = () => {
                 className="pl-10 bg-purple-900/20 border-purple-500/30 text-white placeholder:text-purple-300"
               />
             </div>
+            <Button
+              onClick={() => setSearchTerm('')}
+              variant="outline"
+              className="border-purple-400 text-purple-300 hover:bg-purple-900/20"
+            >
+              Clear
+            </Button>
           </div>
+
+          {searchTerm && (
+            <div className="text-sm text-purple-300">
+              {usersLoading ? 'Searching...' : `Found ${users?.length || 0} users`}
+            </div>
+          )}
 
           {usersLoading ? (
             <div className="text-center py-8 text-purple-200">Loading users...</div>
@@ -173,6 +186,12 @@ export const UserManagement = () => {
                   ))}
                 </TableBody>
               </Table>
+
+              {users?.length === 0 && searchTerm && (
+                <div className="text-center py-8 text-purple-200">
+                  No users found matching "{searchTerm}"
+                </div>
+              )}
             </div>
           )}
         </CardContent>
