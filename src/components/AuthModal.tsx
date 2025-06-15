@@ -179,9 +179,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     }
   };
 
+  // Make modal content always scrollable and visible on any screen height
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent
+        className="sm:max-w-[500px] max-h-[98vh] h-auto overflow-y-auto"
+        style={{ maxHeight: '98vh', overflowY: 'auto' }}
+      >
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
             {currentMode ? 'Welcome Back' : 'Join Linguista'}
