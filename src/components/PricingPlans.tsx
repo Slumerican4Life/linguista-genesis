@@ -56,8 +56,8 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
         'Translation history',
         'Export options'
       ],
-      stripeMonthlyId: 'price_1RWSLbEEqiDDPmsdoUwQRkeJ',
-      stripeAnnualId: 'price_1RWSZ8EEqiDDPmsdqXqyueAb',
+      stripeMonthlyId: 'price_REPLACE_WITH_YOUR_PROFESSIONAL_MONTHLY_ID',
+      stripeAnnualId: 'price_REPLACE_WITH_YOUR_PROFESSIONAL_ANNUAL_ID',
       popular: true,
       gradient: 'from-green-600 to-emerald-700'
     },
@@ -80,8 +80,8 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
         'Team collaboration',
         'API access'
       ],
-      stripeMonthlyId: 'price_1RWSoEEEqiDDPmsdpJwiiWgv',
-      stripeAnnualId: 'price_1RWSwDEEqiDDPmsdTvHVwc4z',
+      stripeMonthlyId: 'price_REPLACE_WITH_YOUR_PREMIUM_MONTHLY_ID',
+      stripeAnnualId: 'price_REPLACE_WITH_YOUR_PREMIUM_ANNUAL_ID',
       popular: false,
       gradient: 'from-blue-600 to-purple-700'
     },
@@ -104,8 +104,8 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
         'Bulk processing',
         'Phone support'
       ],
-      stripeMonthlyId: 'price_1RWUexEEqiDDPmsdO7reYLOF',
-      stripeAnnualId: 'price_1RWUtbEEqiDDPmsdKjVXBJz8',
+      stripeMonthlyId: 'price_REPLACE_WITH_YOUR_BUSINESS_MONTHLY_ID',
+      stripeAnnualId: 'price_REPLACE_WITH_YOUR_BUSINESS_ANNUAL_ID',
       popular: false,
       gradient: 'from-purple-600 to-pink-700'
     }
