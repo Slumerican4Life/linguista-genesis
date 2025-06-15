@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,10 +62,11 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Premium color palette for PolyLingua
+				// Enhanced color palette with more purples and reds
 				'ai-blue': {
 					50: '#eff6ff',
 					100: '#dbeafe',
+					400: '#60a5fa',
 					500: '#3b82f6',
 					600: '#2563eb',
 					700: '#1d4ed8',
@@ -75,17 +75,33 @@ export default {
 				'ai-purple': {
 					50: '#faf5ff',
 					100: '#f3e8ff',
+					200: '#e9d5ff',
+					300: '#d8b4fe',
+					400: '#c084fc',
 					500: '#8b5cf6',
 					600: '#7c3aed',
 					700: '#6d28d9',
+					800: '#5b21b6',
 					900: '#4c1d95'
+				},
+				'ai-red': {
+					50: '#fef2f2',
+					100: '#fee2e2',
+					200: '#fecaca',
+					300: '#fca5a5',
+					400: '#f87171',
+					500: '#ef4444',
+					600: '#dc2626',
+					700: '#b91c1c',
+					800: '#991b1b',
+					900: '#7f1d1d'
 				},
 				'agent-lexi': '#10b981', // emerald for extraction
 				'agent-poly': '#3b82f6', // blue for main translation
 				'agent-vera': '#f59e0b', // amber for cultural adaptation
 				'agent-tala': '#8b5cf6', // purple for tone adjustment
 				'agent-zane': '#ef4444',  // red for security filtering
-				// Deep purples and magical colors
+				// Deep purples and magical colors with reds
 				'deep-purple': {
 					50: '#faf7ff',
 					100: '#f3e8ff',
@@ -98,6 +114,30 @@ export default {
 					800: '#6b217c',
 					900: '#581c87',
 					950: '#3b0764'
+				},
+				'royal-purple': {
+					50: '#f8f4ff',
+					100: '#f0e6ff',
+					200: '#e1ccff',
+					300: '#c999ff',
+					400: '#a855f7',
+					500: '#8b5cf6',
+					600: '#7c3aed',
+					700: '#6d28d9',
+					800: '#5b21b6',
+					900: '#4c1d95'
+				},
+				'crimson-red': {
+					50: '#fef2f2',
+					100: '#fee2e2',
+					200: '#fecaca',
+					300: '#fca5a5',
+					400: '#f87171',
+					500: '#ef4444',
+					600: '#dc2626',
+					700: '#b91c1c',
+					800: '#991b1b',
+					900: '#7f1d1d'
 				},
 				'magic-gold': {
 					50: '#fffdf2',
@@ -113,9 +153,9 @@ export default {
 				}
 			},
 			fontFamily: {
-				'script': ['Dancing Script', 'cursive'],
-				'fun': ['Pacifico', 'cursive'],
-				'fancy': ['Lobster', 'cursive'],
+				'script': ['Quicksand', 'sans-serif'], // Less curvy but still elegant
+				'fun': ['Comfortaa', 'cursive'], // Rounded but not too curvy
+				'fancy': ['Poppins', 'sans-serif'], // Clean and modern
 				'inter': ['Inter', 'sans-serif']
 			},
 			borderRadius: {
@@ -199,6 +239,7 @@ export default {
 				'grid-pattern': 'linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px)',
 				'neuronix-gradient': 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 50%, #6366f1 100%)',
 				'magic-gradient': 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 25%, #3b82f6 50%, #1e40af 75%, #6366f1 100%)',
+				'purple-red-gradient': 'linear-gradient(135deg, #8b5cf6 0%, #c084fc 25%, #ef4444 50%, #dc2626 75%, #7c3aed 100%)',
 				'lightning-gradient': 'linear-gradient(45deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%)'
 			},
 			backdropBlur: {
@@ -210,6 +251,7 @@ export default {
 			textShadow: {
 				'glow': '0 0 10px rgba(139, 92, 246, 0.8), 0 0 20px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.4)',
 				'gold': '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6)',
+				'red-glow': '0 0 10px rgba(239, 68, 68, 0.8), 0 0 20px rgba(239, 68, 68, 0.6)',
 			}
 		}
 	},
