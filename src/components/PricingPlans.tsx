@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,7 +66,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
       name: 'Premium',
       icon: <Rocket className="w-6 h-6" />,
       monthlyPrice: 29.99,
-      annualPrice: 299,
+      annualPrice: 299.99,
       description: 'For teams and heavy users',
       features: [
         'Unlimited words',
@@ -91,7 +90,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
       name: 'Business',
       icon: <Building className="w-6 h-6" />,
       monthlyPrice: 59.99,
-      annualPrice: 599,
+      annualPrice: 599.99,
       description: 'For enterprises and large teams',
       features: [
         'Unlimited everything',
