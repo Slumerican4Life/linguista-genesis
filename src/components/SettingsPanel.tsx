@@ -12,6 +12,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PhoneVerification } from './verification/PhoneVerification';
 import { EmailVerification } from './verification/EmailVerification';
 import { WebsiteTranslator } from './translation/WebsiteTranslator';
+import { UserPreferencesModal } from "@/components/preferences/UserPreferencesModal";
+import { SecuritySettingsModal } from "@/components/security/SecuritySettingsModal";
+import { BillingHistory } from "@/components/payment/BillingHistory";
 
 interface SettingsPanelProps {
   currentPlan: string;
@@ -239,13 +242,22 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
   const emailVerified = !!(userProfile as any)?.email_verified_at;
   const phoneVerified = !!(userProfile as any)?.phone_verified_at;
 
+  // Modal states
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const [isSecurityOpen, setIsSecurityOpen] = useState(false);
+  const [isBillingOpen, setIsBillingOpen] = useState(false);
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-black border border-blue-600">
+        <TabsList className="grid w-full grid-cols-5 bg-black border border-blue-600">
           <TabsTrigger value="profile" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
             <User className="w-4 h-4 mr-2" />
             Profile
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
+            <span className="mr-2">⚙️</span>
+            Preferences
           </TabsTrigger>
           <TabsTrigger value="security" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
             <Shield className="w-4 h-4 mr-2" />
@@ -261,6 +273,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
           </TabsTrigger>
         </TabsList>
 
+        {/* MAIN TABS */}
         <TabsContent value="profile" className="space-y-6">
           <Card className="bg-black border-blue-600">
             <CardHeader>
@@ -458,26 +471,48 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="security" className="space-y-6">
-          <EmailVerification
-            email={userProfile?.email || ''}
-            isVerified={emailVerified}
-            onVerificationComplete={handleVerificationComplete}
-          />
-          
-          <PhoneVerification
-            phoneNumber={phoneNumber}
-            isVerified={phoneVerified}
-            onVerificationComplete={handleVerificationComplete}
-          />
+        <TabsContent value="preferences" className="space-y-6">
+          <div className="flex items-center justify-between p-6 border border-blue-500/40 rounded-lg bg-black/60">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-1">User Preferences</h2>
+              <div className="text-blue-200 mb-2">Manage themes, language, UI, and other personalization options.</div>
+            </div>
+            <Button onClick={() => setIsPreferencesOpen(true)} className="bg-purple-700 text-white">
+              Configure Preferences
+            </Button>
+          </div>
+          <UserPreferencesModal open={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)} />
         </TabsContent>
-
+        <TabsContent value="security" className="space-y-6">
+          <div className="flex items-center justify-between p-6 border border-blue-500/40 rounded-lg bg-black/60">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-1">Security Settings</h2>
+              <div className="text-blue-200 mb-2">Password, 2FA, login activity, and account management.</div>
+            </div>
+            <Button onClick={() => setIsSecurityOpen(true)} className="bg-purple-700 text-white">
+              Open Security Panel
+            </Button>
+          </div>
+          <SecuritySettingsModal open={isSecurityOpen} onClose={() => setIsSecurityOpen(false)} />
+        </TabsContent>
         <TabsContent value="translation" className="space-y-6">
           <WebsiteTranslator />
         </TabsContent>
-
         <TabsContent value="billing" className="space-y-6">
+          <div className="flex items-center justify-between p-6 border border-blue-500/40 rounded-lg bg-black/60">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-1">Billing & Subscription</h2>
+              <div className="text-blue-200 mb-2">Your current plan, subscription, and payment history.</div>
+            </div>
+            <Button onClick={() => setIsBillingOpen(v => !v)} className="bg-purple-700 text-white">
+              View Billing History
+            </Button>
+          </div>
+          {isBillingOpen && (
+            <div className="mt-4">
+              <BillingHistory userId={userProfile?.id} />
+            </div>
+          )}
           <Card className="bg-black border-blue-600">
             <CardHeader>
               <CardTitle className="text-white">Subscription & Billing</CardTitle>
@@ -501,6 +536,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Preferences Drawer */}
+      <UserPreferencesModal open={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)} />
+      {/* Security Dialog */}
+      <SecuritySettingsModal open={isSecurityOpen} onClose={() => setIsSecurityOpen(false)} />
     </div>
   );
 };
