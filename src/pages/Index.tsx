@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs } from '@/components/ui/tabs';
 import { AppBackground } from '@/components/layout/AppBackground';
@@ -129,6 +128,11 @@ const Index = () => {
   }, [profileError]);
 
   const currentPlan = userProfile?.subscriptions?.[0]?.tier || 'free';
+  // Identify creator by hardcoding email (production: maybe by role field)
+  const isCreator = userProfile?.email === 'cleanasawhistle1000@gmail.com';
+  const isOwner = userProfile?.role === 'owner' && !isCreator;
+  const isManager = userProfile?.role === 'manager' && !isCreator;
+  const isAdmin = isCreator || isOwner || isManager;
 
   const handleTranslate = async () => {
     if (!inputText.trim() || selectedLanguages.length === 0) return;
@@ -244,7 +248,29 @@ const Index = () => {
             onSelectPlan={handleSelectPlan}
             onOpenAuthModal={() => handleOpenAuthModal(false)}
             setActiveTab={setActiveTab}
+            // NEW: Pass isCreator to TabContent
+            isCreator={isCreator}
           />
+
+          {isAdmin && activeTab === "admin" && (
+            <div className="mt-12">
+              {isCreator && (
+                // Enhanced admin interface for the creator
+                <React.Suspense fallback={<div>Loading Enhanced User Management...</div>}>
+                  {/** Dynamically import for code splitting if desired */}
+                  {React.createElement(require('@/components/admin/EnhancedUserManagement').EnhancedUserManagement)}
+                </React.Suspense>
+              )}
+              {!isCreator && (isOwner || isManager) && (
+                // Classic user management (without gifting interface)
+                <React.Suspense fallback={<div>Loading User Management...</div>}>
+                  {React.createElement(require('@/components/admin/UserManagement').UserManagement)}
+                </React.Suspense>
+              )}
+              {/* No admin UI for all others */}
+            </div>
+          )}
+
 
           <AdBanner position="middle" user={user} currentPlan={currentPlan} />
         </Tabs>
