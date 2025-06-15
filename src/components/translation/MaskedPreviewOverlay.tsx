@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { X, Globe, Languages, Eye, Zap, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -156,50 +156,32 @@ export const MaskedPreviewOverlay: React.FC<MaskedPreviewOverlayProps> = ({
           ) : (
             <div className="grid lg:grid-cols-2 gap-8 h-full">
               {/* Original Version */}
-              <Card className="bg-black/60 border-purple-700/50 h-full">
+              <Card className="bg-black/60 border-purple-700/50 h-full flex flex-col">
                 <div className="p-4 border-b border-purple-700/50 bg-purple-900/20">
                   <h3 className="font-semibold text-purple-100 flex items-center gap-2">
                     <Globe className="w-4 h-4" />
-                    Original (English)
+                    Original Website Preview
                   </h3>
                 </div>
-                <div className="p-6 space-y-6 h-full">
-                  {/* Mock Website Layout */}
-                  <div className="space-y-4">
-                    <h1 className="text-3xl font-bold text-white">{mockWebsiteContent.title}</h1>
-                    
-                    <nav className="flex space-x-6">
-                      {mockWebsiteContent.navigation.map((item, i) => (
-                        <a key={i} href="#" className="text-blue-400 hover:text-blue-300 transition-colors">
-                          {item}
-                        </a>
-                      ))}
-                    </nav>
-                    
-                    <div className="space-y-4 pt-4">
-                      {mockWebsiteContent.content.map((text, i) => (
-                        <div key={i} className={`
-                          ${i === 0 ? 'text-xl text-white' : ''}
-                          ${i === 1 ? 'text-gray-300' : ''}
-                          ${i >= 2 ? 'inline-block bg-blue-600 text-white px-4 py-2 rounded-lg mr-2' : ''}
-                        `}>
-                          {text}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                <div className="p-1 flex-1 bg-white">
+                  <iframe
+                    src={url}
+                    title="Original Website Preview"
+                    className="w-full h-full border-0 rounded-b-md"
+                    sandbox="allow-scripts allow-same-origin"
+                  />
                 </div>
               </Card>
 
               {/* Translated Version */}
-              <Card className="bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-500/50 h-full">
+              <Card className="bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-500/50 h-full flex flex-col">
                 <div className="p-4 border-b border-green-500/50 bg-green-900/20">
                   <h3 className="font-semibold text-green-100 flex items-center gap-2">
                     <Zap className="w-4 h-4 animate-pulse" />
-                    Translated ({selectedLang.charAt(0).toUpperCase() + selectedLang.slice(1)})
+                    Translated Demo ({selectedLang.charAt(0).toUpperCase() + selectedLang.slice(1)})
                   </h3>
                 </div>
-                <div className="p-6 space-y-6 h-full">
+                <div className="p-6 space-y-6 flex-1 overflow-y-auto">
                   {/* Translated Mock Website Layout */}
                   <div className="space-y-4">
                     <h1 className="text-3xl font-bold text-white animate-pulse">
@@ -225,6 +207,9 @@ export const MaskedPreviewOverlay: React.FC<MaskedPreviewOverlayProps> = ({
                         </div>
                       ))}
                     </div>
+                  </div>
+                   <div className="text-center text-xs text-purple-300 pt-4 mt-auto border-t border-purple-700/30">
+                    This is a demonstration of translation quality on sample text. Your actual website content will be translated like this.
                   </div>
                 </div>
               </Card>
