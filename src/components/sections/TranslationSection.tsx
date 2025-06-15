@@ -120,7 +120,6 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
             <LanguageSelector
               selectedLanguages={selectedLanguages}
               onLanguageChange={setSelectedLanguages}
-              currentPlan={currentPlan}
             />
             <ToneSelector
               selectedTone={selectedTone}
@@ -164,7 +163,6 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
       {Object.keys(translations).length > 0 && (
         <TranslationPreview
           translations={translations}
-          isTranslating={isTranslating}
           inputText={inputText}
         />
       )}
