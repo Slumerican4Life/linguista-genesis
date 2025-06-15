@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +7,6 @@ import { Bot, MessageCircle, X, Send, Upload, FileText, Minimize2, Maximize2 } f
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { LyraKnowledgeUpload } from './LyraKnowledgeUpload';
-
 interface Message {
   id: string;
   text: string;
@@ -108,12 +106,14 @@ export const LyraOverlay = () => {
     setIsMinimized(!isMinimized);
   };
 
+  // Change: reposition the main launcher button so it won't block Lyra or chat overlay
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-8 right-8 z-50" style={{ pointerEvents: "all" }}>
         <Button
           onClick={() => setIsOpen(true)}
           className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 border-2 border-purple-400/50 backdrop-blur-sm relative overflow-hidden group"
+          style={{ boxShadow: "0 6px 28px 6px rgba(100,0,150,0.20)" }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10 flex flex-col items-center">
@@ -127,7 +127,7 @@ export const LyraOverlay = () => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)]">
+    <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)]" style={{ pointerEvents: "auto" }}>
       <Card className={`border border-purple-500/30 bg-black/95 backdrop-blur-xl shadow-2xl transition-all duration-300 ${
         isMinimized ? 'h-16' : 'h-auto'
       }`}>
@@ -199,7 +199,10 @@ export const LyraOverlay = () => {
                   </h4>
                   <p className="text-xs text-purple-300">Upload files to enhance Lyra's knowledge and translation capabilities</p>
                 </div>
+                {/* Show book upload with live progress */}
                 <LyraKnowledgeUpload />
+                {/* --- Add visible knowledge base list --- */}
+                <KnowledgeBaseList />
               </div>
             )}
 
@@ -268,3 +271,46 @@ export const LyraOverlay = () => {
     </div>
   );
 };
+
+// Helper component, shown in the Lyra overlay for non-admins.
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+
+const KnowledgeBaseList = () => {
+  // Fetch knowledge files
+  const { data: files, isLoading } = useQuery({
+    queryKey: ["knowledge-files"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("knowledge_files").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (isLoading) return <p className="text-xs text-purple-400">Loading knowledge base...</p>;
+
+  return (
+    <div className="mt-4">
+      <h5 className="text-sm text-purple-200 font-bold mb-1">Lyra Knowledge Base</h5>
+      <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+        {files && files.length > 0 ? (
+          files.map(file => (
+            <div key={file.id} className="flex items-center justify-between px-2 py-1 bg-purple-950/40 rounded text-xs">
+              <span className="truncate text-purple-100">{file.file_name}</span>
+              <span className="ml-3 text-purple-300">{(file.file_size/1024).toFixed(1)} KB</span>
+              <Badge className={`ml-2 ${file.is_active ? "bg-purple-700 text-white" : "bg-gray-700 text-purple-200"}`}>
+                {file.is_active ? "Active":"Inactive"}
+              </Badge>
+            </div>
+          ))
+        ) : (
+          <span className="text-purple-500">No knowledge yet</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default KnowledgeBaseList;
