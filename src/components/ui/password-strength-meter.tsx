@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Shield, AlertTriangle, Check } from 'lucide-react';
@@ -21,6 +20,14 @@ export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({
   const strengthLabel = getPasswordStrengthLabel(score);
   const progressValue = (score / 5) * 100;
 
+  // Map score to progress bar color
+  let progressBarColor =
+    score <= 1 ? 'bg-red-500' :
+    score <= 2 ? 'bg-orange-500' :
+    score <= 3 ? 'bg-yellow-500' :
+    score <= 4 ? 'bg-blue-500' :
+    'bg-green-500';
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -32,17 +39,14 @@ export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({
         </span>
       </div>
       
-      <Progress 
-        value={progressValue} 
-        className="h-2"
-        indicatorClassName={`transition-all duration-300 ${
-          score <= 1 ? 'bg-red-500' :
-          score <= 2 ? 'bg-orange-500' :
-          score <= 3 ? 'bg-yellow-500' :
-          score <= 4 ? 'bg-blue-500' :
-          'bg-green-500'
-        }`}
-      />
+      <div className="h-2 rounded-full bg-secondary w-full overflow-hidden">
+        <div
+          className={`h-2 transition-all duration-300 ${progressBarColor}`}
+          style={{
+            width: `${progressValue}%`
+          }}
+        />
+      </div>
       
       {/* Leak Detection Status */}
       {isCheckingLeak && (
