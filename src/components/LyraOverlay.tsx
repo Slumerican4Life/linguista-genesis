@@ -108,22 +108,26 @@ export const LyraOverlay = () => {
     setIsMinimized(!isMinimized);
   };
 
-  // Change: reposition the main launcher button so it won't block Lyra or chat overlay
+  // Change: properly center and tidy the Lyra launcher button
   if (!isOpen) {
     return (
-      <div className="fixed bottom-8 right-8 z-50" style={{ pointerEvents: "all" }}>
+      <div
+        className="fixed bottom-8 right-8 z-50 flex items-center justify-center"
+        style={{ pointerEvents: "all" }}
+      >
         <Button
           onClick={() => setIsOpen(true)}
-          // Ensure content is centered and not overflowing
-          className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 border-2 border-purple-400/50 backdrop-blur-sm relative overflow-hidden group flex items-center justify-center p-0"
+          // Remove any w-full or ambiguous width from child
+          className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 border-2 border-purple-400/50 backdrop-blur-sm relative overflow-hidden flex flex-col items-center justify-center p-0"
           style={{ boxShadow: "0 6px 28px 6px rgba(100,0,150,0.20)" }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
           <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
             <Bot className="w-7 h-7 text-white mb-1" />
-            <span className="text-xs font-bold text-white">Lyra</span>
+            <span className="text-xs font-bold text-white leading-none">Lyra</span>
           </div>
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse shadow-lg"></div>
+          {/* Ensure this does not affect centering */}
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse shadow-lg pointer-events-none"></div>
         </Button>
       </div>
     );
