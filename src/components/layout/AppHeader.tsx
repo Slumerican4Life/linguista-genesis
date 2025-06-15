@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Shield } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AuthSection } from '@/components/auth/AuthSection';
 import { NeuronixBrain } from '@/components/NeuronixBrain';
@@ -80,12 +80,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <Bot className="w-5 h-5 mr-3" />
               Neural Core Active
             </Badge>
-            {userProfile && (
-              <Badge variant="outline" className="px-6 py-3 font-black border-2 border-blue-400/60 text-blue-200 bg-gradient-to-r from-blue-900/60 to-purple-900/60 backdrop-blur-xl text-lg">
-                <Shield className="w-5 h-5 mr-3" />
-                {userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)}
-              </Badge>
-            )}
             <AuthSection
               user={user}
               userProfile={userProfile}
