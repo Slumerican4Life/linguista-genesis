@@ -79,13 +79,24 @@ serve(async (req) => {
     const origin = req.headers.get("origin");
     console.log("Using origin for redirect URLs:", origin);
 
+    console.log("Retrieving price details from Stripe...");
+    const price = await stripe.prices.retrieve(priceId);
+    if (!price) {
+      console.error("Price not found for priceId:", priceId);
+      throw new Error("Invalid price ID provided.");
+    }
+    console.log("Retrieved price object:", price.id, "type:", price.type);
+
+    const mode = price.type === 'recurring' ? 'subscription' : 'payment';
+    console.log("Determined checkout mode:", mode);
+
     console.log("Creating Stripe checkout session...");
     let session;
     try {
       session = await stripe.checkout.sessions.create({
         customer: customerId,
         line_items: [{ price: priceId, quantity: 1 }],
-        mode: "subscription",
+        mode: mode,
         success_url: `${origin}/`,
         cancel_url: `${origin}/`,
         client_reference_id: user.id,
