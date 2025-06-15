@@ -7,7 +7,7 @@ import { CheckCircle, Clock, Zap } from 'lucide-react';
 interface ProgressStep {
   id: string;
   label: string;
-  status: 'pending' | 'processing' | 'completed';
+  status: 'pending' | 'processing' | 'completed' | 'error';
   description: string;
 }
 
@@ -37,6 +37,10 @@ export const ProgressMeter: React.FC<ProgressMeterProps> = ({ steps, currentStep
                 <CheckCircle className="w-6 h-6 text-green-400" />
               ) : step.status === 'processing' ? (
                 <Zap className="w-6 h-6 text-yellow-400 animate-pulse" />
+              ) : step.status === 'error' ? (
+                <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">!</span>
+                </div>
               ) : (
                 <Clock className="w-6 h-6 text-gray-400" />
               )}
@@ -45,13 +49,19 @@ export const ProgressMeter: React.FC<ProgressMeterProps> = ({ steps, currentStep
               <div className="flex items-center space-x-3">
                 <span className={`font-bold ${
                   step.status === 'completed' ? 'text-green-300' :
-                  step.status === 'processing' ? 'text-yellow-300' : 'text-gray-400'
+                  step.status === 'processing' ? 'text-yellow-300' : 
+                  step.status === 'error' ? 'text-red-300' : 'text-gray-400'
                 }`}>
                   {step.label}
                 </span>
                 {step.status === 'processing' && (
                   <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold animate-pulse">
                     Active
+                  </Badge>
+                )}
+                {step.status === 'error' && (
+                  <Badge className="bg-gradient-to-r from-red-600 to-red-700 text-white font-bold">
+                    Error
                   </Badge>
                 )}
               </div>
