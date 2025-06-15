@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -77,7 +76,7 @@ async function updateProgress(supabaseClient: any, projectId: string, updateFn: 
 
 async function crawlWebsite(supabaseClient: any, projectId: string, url:string) {
   try {
-    const stepsOrder = ['init', 'crawl', 'extract', 'translate', 'rebuild', 'deploy'];
+    const stepsOrder = ['init', 'crawl', 'extract', 'translate', 'quality-check', 'rebuild', 'deploy'];
 
     for (const stepId of stepsOrder) {
       // Mark step as processing
@@ -91,9 +90,13 @@ async function crawlWebsite(supabaseClient: any, projectId: string, url:string) 
         console.log(`Crawling ${url} for project ${projectId}`);
         await new Promise(resolve => setTimeout(resolve, 3000));
       } else if (stepId === 'translate') {
-        // Actual translation logic would go here.
-        console.log(`Translating content for project ${projectId}`);
+        // Actual bulk translation logic would go here.
+        console.log(`Bulk translating content for project ${projectId}`);
         await new Promise(resolve => setTimeout(resolve, 4000));
+      } else if (stepId === 'quality-check') {
+        // Actual quality check logic would go here.
+        console.log(`Performing quality check for project ${projectId}`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } else {
         // Simulate generic work for other steps
         await new Promise(resolve => setTimeout(resolve, 1500));

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -72,7 +73,7 @@ export const WebsiteTranslator: React.FC = () => {
       return data;
     },
     enabled: !!currentCrawlingProject && !!user,
-    refetchInterval: (crawlingStatus) => (crawlingStatus?.status === 'crawling' || crawlingStatus?.status === 'pending') ? 2000 : false,
+    refetchInterval: (query) => (query.state.data?.status === 'crawling' || query.state.data?.status === 'pending') ? 2000 : false,
   });
 
   const { data: projects, isLoading } = useQuery({
@@ -129,7 +130,8 @@ export const WebsiteTranslator: React.FC = () => {
           { id: 'init', label: 'Deploying AI Crawlers', status: 'pending', description: 'Neuronix agents launching into cyberspace' },
           { id: 'crawl', label: 'Crawlers Crawling Site', status: 'pending', description: 'AI agents scanning every page and element' },
           { id: 'extract', label: 'Crawlers Returning', status: 'pending', description: 'Agents returning with extracted content' },
-          { id: 'translate', label: 'Translation in Effect', status: 'pending', description: 'Neural networks processing language conversion' },
+          { id: 'translate', label: 'Bulk Translation', status: 'pending', description: 'Neural networks processing language conversion' },
+          { id: 'quality-check', label: 'Quality Check', status: 'pending', description: 'AI agents reviewing for contextual accuracy' },
           { id: 'rebuild', label: 'Rebuilding Site', status: 'pending', description: 'Reconstructing site with new language' },
           { id: 'deploy', label: 'Site Ready', status: 'pending', description: 'Your translated website is ready!' }
         ];
