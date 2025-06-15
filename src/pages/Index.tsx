@@ -208,7 +208,7 @@ const Index = () => {
 
       if (data.url) {
         toast.success("Redirecting to Stripe...", { id: toastId });
-        window.location.href = data.url;
+        window.open(data.url, '_blank');
       } else {
         throw new Error("Could not create Stripe checkout session.");
       }
