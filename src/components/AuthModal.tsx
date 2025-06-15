@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -99,11 +98,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
 
     try {
       if (currentMode) {
-        // Login flow - no password validation needed
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: authMethod === 'email' ? formData.email : formData.phone,
-          password: formData.password
-        });
+        // Login flow - FIXED: use proper API keys for email or phone
+        let loginPayload: any = { password: formData.password };
+        if (authMethod === 'email') {
+          loginPayload.email = formData.email;
+        } else if (authMethod === 'phone') {
+          loginPayload.phone = formData.phone;
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword(loginPayload);
 
         if (error) throw error;
         
@@ -232,7 +235,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                       id={authMethod}
                       type={authMethod === 'email' ? 'email' : 'tel'}
                       placeholder={authMethod === 'email' ? 'your@email.com' : '+1 (555) 123-4567'}
-                      value={authMethod === 'email' ? formData.email : (formData.phone ? maskPhoneNumber(formData.phone) : '')}
+                      // Show actual value for typing (not masked on input)
+                      value={authMethod === 'email' ? formData.email : formData.phone}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
                         [authMethod]: e.target.value
