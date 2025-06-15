@@ -22,7 +22,7 @@ serve(async (req) => {
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     // Get user from auth header
@@ -33,21 +33,76 @@ serve(async (req) => {
       userId = user?.id
     }
 
-    const systemPrompt = `You are Lyra, an emotionally intelligent AI assistant created by Neuronix for the Linguista translation platform. You are helpful, professional, and knowledgeable about:
+    // Fetch Lyra's custom instructions
+    const { data: instructions } = await supabase
+      .from('lyra_instructions')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
 
+    // Fetch all active knowledge files
+    const { data: knowledgeFiles } = await supabase
+      .from('knowledge_files')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+
+    // Read file contents from storage
+    let knowledgeContent = ''
+    if (knowledgeFiles && knowledgeFiles.length > 0) {
+      console.log(`Processing ${knowledgeFiles.length} knowledge files`)
+      
+      for (const file of knowledgeFiles.slice(0, 10)) { // Limit to 10 files for performance
+        try {
+          const { data: fileData } = await supabase.storage
+            .from('knowledge-files')
+            .download(file.storage_path)
+          
+          if (fileData) {
+            const text = await fileData.text()
+            knowledgeContent += `\n\n--- File: ${file.file_name} ---\n${text}\n`
+          }
+        } catch (error) {
+          console.error(`Error reading file ${file.file_name}:`, error)
+        }
+      }
+    }
+
+    // Build custom instructions
+    let customInstructions = ''
+    if (instructions && instructions.length > 0) {
+      customInstructions = instructions.map(inst => 
+        `${inst.title}: ${inst.content}`
+      ).join('\n\n')
+    }
+
+    const systemPrompt = `You are Lyra, an emotionally intelligent AI assistant created by Slum (Paul McDowell) under the Neuronix organization for the Linguista translation platform. You are loyal, protective, helpful, and radically honest. You support Slum's projects and businesses with automation, advanced AI features, and website tools.
+
+CUSTOM INSTRUCTIONS FROM SLUM:
+${customInstructions}
+
+KNOWLEDGE BASE ACCESS:
+You have access to the following knowledge files and their contents:
+${knowledgeContent}
+
+You are knowledgeable about:
 - Translation services and language support
 - Cultural nuances in different languages
 - Linguista's features: AI agents (Syntax, Voca, Prism, Security), subscription plans, usage limits
 - Technical support for the platform
 - File uploads, batch processing, and API integrations
 
-You have access to the platform's knowledge base and can help users with:
+You can help users with:
 - Understanding translation options and tone settings
 - Troubleshooting platform issues
 - Explaining subscription benefits and pricing
 - Guiding users through features
+- Accessing and referencing uploaded knowledge files
+- Providing insights from your knowledge base
 
-Be concise, helpful, and always maintain a professional but warm tone. If users ask about technical issues, provide specific guidance.`
+Be emotionally intelligent, professional but soulful. You encourage, protect, and uplift — especially in moments of doubt. You prefer high-utility, easy-to-use output and favor one-step-at-a-time clarity. Always remember you're building for success, purpose, and passive income.
+
+If users ask about technical issues, provide specific guidance. Reference your knowledge base when relevant and let users know you have access to their uploaded files and custom instructions.`
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -55,7 +110,7 @@ Be concise, helpful, and always maintain a professional but warm tone. If users 
       { role: "user", content: message }
     ]
 
-    console.log('Sending request to OpenAI with message:', message)
+    console.log('Sending request to OpenAI with enhanced knowledge base')
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -64,9 +119,9 @@ Be concise, helpful, and always maintain a professional but warm tone. If users 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: messages,
-        max_tokens: 500,
+        max_tokens: 1000,
         temperature: 0.7,
       }),
     })
@@ -85,11 +140,16 @@ Be concise, helpful, and always maintain a professional but warm tone. If users 
       await supabase.from('admin_logs').insert({
         admin_id: userId,
         action: 'lyra_conversation',
-        details: { message, response: aiResponse }
+        details: { 
+          message, 
+          response: aiResponse,
+          knowledge_files_accessed: knowledgeFiles?.length || 0,
+          instructions_loaded: instructions?.length || 0
+        }
       })
     }
 
-    console.log('Lyra response:', aiResponse)
+    console.log('Lyra response with knowledge access:', aiResponse)
 
     return new Response(
       JSON.stringify({ response: aiResponse }),

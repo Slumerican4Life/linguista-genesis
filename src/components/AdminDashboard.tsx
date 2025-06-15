@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, BarChart3, Settings, FileText, TrendingUp, Globe, Shield } from 'lucide-react';
+import { Users, BarChart3, Settings, FileText, TrendingUp, Globe, Shield, Brain } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { EnhancedUserManagement } from './admin/EnhancedUserManagement';
 import { ActivityLogs } from './admin/ActivityLogs';
 import { KnowledgeBase } from './admin/KnowledgeBase';
+import { LyraInstructions } from './admin/LyraInstructions';
 
 export const AdminDashboard = () => {
   // Fetch dashboard stats
@@ -108,7 +109,7 @@ export const AdminDashboard = () => {
 
       {/* Admin Tabs */}
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-black border border-purple-600">
+        <TabsList className="grid w-full grid-cols-5 bg-black border border-purple-600">
           <TabsTrigger value="users" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-purple-200">
             <Users className="w-4 h-4 mr-2" />
             User Management
@@ -124,6 +125,10 @@ export const AdminDashboard = () => {
           <TabsTrigger value="knowledge" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-purple-200">
             <FileText className="w-4 h-4 mr-2" />
             Knowledge Base
+          </TabsTrigger>
+          <TabsTrigger value="lyra" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-purple-200">
+            <Brain className="w-4 h-4 mr-2" />
+            Lyra AI
           </TabsTrigger>
         </TabsList>
 
@@ -186,6 +191,10 @@ export const AdminDashboard = () => {
 
         <TabsContent value="knowledge">
           <KnowledgeBase />
+        </TabsContent>
+
+        <TabsContent value="lyra">
+          <LyraInstructions />
         </TabsContent>
       </Tabs>
     </div>
