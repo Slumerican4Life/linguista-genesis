@@ -10,6 +10,29 @@ interface TranslationProjectFormProps {
   isCreating: boolean;
 }
 
+const languages = [
+  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
+  { code: 'fr', name: 'French', flag: '🇫🇷' },
+  { code: 'de', name: 'German', flag: '🇩🇪' },
+  { code: 'it', name: 'Italian', flag: '🇮🇹' },
+  { code: 'pt', name: 'Portuguese', flag: '🇵🇹' },
+  { code: 'ru', name: 'Russian', flag: '🇷🇺' },
+  { code: 'ja', name: 'Japanese', flag: '🇯🇵' },
+  { code: 'ko', name: 'Korean', flag: '🇰🇷' },
+  { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
+  { code: 'ar', name: 'Arabic', flag: '🇸🇦' },
+  { code: 'hi', name: 'Hindi', flag: '🇮🇳' },
+  { code: 'th', name: 'Thai', flag: '🇹🇭' },
+  { code: 'vi', name: 'Vietnamese', flag: '🇻🇳' },
+  { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
+  { code: 'sv', name: 'Swedish', flag: '🇸🇪' },
+  { code: 'da', name: 'Danish', flag: '🇩🇰' },
+  { code: 'no', name: 'Norwegian', flag: '🇳🇴' },
+  { code: 'fi', name: 'Finnish', flag: '🇫🇮' },
+  { code: 'pl', name: 'Polish', flag: '🇵🇱' },
+  { code: 'tr', name: 'Turkish', flag: '🇹🇷' }
+];
+
 export const TranslationProjectForm: React.FC<TranslationProjectFormProps> = ({
   onCreateProject,
   isCreating
@@ -17,29 +40,6 @@ export const TranslationProjectForm: React.FC<TranslationProjectFormProps> = ({
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [projectName, setProjectName] = useState('');
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
-
-  const languages = [
-    { code: 'es', name: 'Spanish' },
-    { code: 'fr', name: 'French' },
-    { code: 'de', name: 'German' },
-    { code: 'it', name: 'Italian' },
-    { code: 'pt', name: 'Portuguese' },
-    { code: 'ru', name: 'Russian' },
-    { code: 'ja', name: 'Japanese' },
-    { code: 'ko', name: 'Korean' },
-    { code: 'zh', name: 'Chinese' },
-    { code: 'ar', name: 'Arabic' },
-    { code: 'hi', name: 'Hindi' },
-    { code: 'th', name: 'Thai' },
-    { code: 'vi', name: 'Vietnamese' },
-    { code: 'nl', name: 'Dutch' },
-    { code: 'sv', name: 'Swedish' },
-    { code: 'da', name: 'Danish' },
-    { code: 'no', name: 'Norwegian' },
-    { code: 'fi', name: 'Finnish' },
-    { code: 'pl', name: 'Polish' },
-    { code: 'tr', name: 'Turkish' }
-  ];
 
   const handleCreateProject = () => {
     if (!projectName.trim()) {
@@ -117,8 +117,9 @@ export const TranslationProjectForm: React.FC<TranslationProjectFormProps> = ({
                 selectedLanguages.includes(lang.code)
                   ? 'bg-purple-600 hover:bg-purple-700 text-white'
                   : 'border-purple-500/30 text-purple-200 hover:bg-purple-900/20'
-              } transition-all duration-200`}
+              } transition-all duration-200 justify-start`}
             >
+              <span className="mr-2">{lang.flag}</span>
               {lang.name}
             </Button>
           ))}

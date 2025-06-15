@@ -9,9 +9,6 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 import { ToneSelector } from '@/components/ToneSelector';
 import { TranslationPreview } from '@/components/TranslationPreview';
 import { Bot, Zap, Globe, Brain, Sparkles } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 interface TranslationSectionProps {
   inputText: string;
@@ -20,6 +17,9 @@ interface TranslationSectionProps {
   setSelectedLanguages: (languages: string[]) => void;
   selectedTone: string;
   setSelectedTone: (tone: string) => void;
+  isTranslating: boolean;
+  translations: Record<string, string>;
+  onTranslate: () => void;
   currentPlan: string;
 }
 
@@ -30,62 +30,13 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
   setSelectedLanguages,
   selectedTone,
   setSelectedTone,
+  isTranslating,
+  translations,
+  onTranslate,
   currentPlan
 }) => {
   const [contentDomain, setContentDomain] = React.useState('general');
   const [culturalContext, setCulturalContext] = React.useState('neutral');
-  const [isTranslating, setIsTranslating] = React.useState(false);
-  const [translations, setTranslations] = React.useState<Record<string, string>>({});
-
-  const { data: user } = useQuery({
-    queryKey: ['user-auth-check'],
-    queryFn: async () => {
-        const { data } = await supabase.auth.getUser();
-        return data.user;
-    },
-  });
-
-  const handleTranslate = async () => {
-    if (!inputText.trim() || selectedLanguages.length === 0 || isTranslating) {
-      return;
-    }
-    if (!user) {
-        toast.error("Please log in to translate text.");
-        return;
-    }
-
-    setIsTranslating(true);
-    setTranslations({});
-
-    try {
-        const { data, error } = await supabase.functions.invoke('ai-translate', {
-            body: {
-                text: inputText,
-                targetLanguages: selectedLanguages,
-                tone: selectedTone,
-                context: {
-                    domain: contentDomain,
-                    cultural_context: culturalContext,
-                },
-            },
-        });
-
-        if (error) {
-            throw new Error(`Translation failed: ${error.message}`);
-        }
-        
-        if (data.translations) {
-            setTranslations(data.translations);
-            toast.success('✨ AI agents delivered context-perfect translations!');
-        } else {
-            throw new Error('Received no translations from the AI agent.');
-        }
-    } catch (error: any) {
-        toast.error(error.message);
-    } finally {
-        setIsTranslating(false);
-    }
-  };
 
   return (
     <div className="space-y-8">
@@ -173,7 +124,7 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
           {/* Translate Button */}
           <div className="flex justify-center">
             <Button
-              onClick={handleTranslate}
+              onClick={onTranslate}
               disabled={!inputText.trim() || selectedLanguages.length === 0 || isTranslating}
               className="px-12 py-4 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
             >
