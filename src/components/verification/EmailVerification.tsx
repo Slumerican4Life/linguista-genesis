@@ -24,9 +24,11 @@ export const EmailVerification: React.FC<EmailVerificationProps> = ({
   const resendVerification = async () => {
     setIsResending(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
+      const { error } = await supabase.functions.invoke('send-verification', {
+        body: {
+          type: 'email',
+          email: email
+        }
       });
 
       if (error) throw error;
@@ -86,21 +88,24 @@ export const EmailVerification: React.FC<EmailVerificationProps> = ({
         <Button
           onClick={resendVerification}
           disabled={isResending || cooldown > 0}
-          className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+          className="w-full bg-orange-600 hover:bg-orange-700 text-white relative overflow-hidden group"
         >
-          {isResending ? (
-            <>
-              <Shield className="w-4 h-4 mr-2 animate-spin" />
-              Sending Email...
-            </>
-          ) : cooldown > 0 ? (
-            `Resend Email (${cooldown}s)`
-          ) : (
-            <>
-              <Mail className="w-4 h-4 mr-2" />
-              Resend Verification Email
-            </>
-          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-400/20 via-orange-300/30 to-orange-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 lava-effect"></div>
+          <div className="relative z-10 flex items-center justify-center">
+            {isResending ? (
+              <>
+                <Shield className="w-4 h-4 mr-2 animate-spin" />
+                Sending Email...
+              </>
+            ) : cooldown > 0 ? (
+              `Resend Email (${cooldown}s)`
+            ) : (
+              <>
+                <Mail className="w-4 h-4 mr-2" />
+                Resend Verification Email
+              </>
+            )}
+          </div>
         </Button>
       </CardContent>
     </Card>
