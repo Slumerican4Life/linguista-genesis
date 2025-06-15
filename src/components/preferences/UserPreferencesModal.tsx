@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface UserPreferencesModalProps {
   open: boolean;
@@ -20,7 +21,7 @@ export const UserPreferencesModal: React.FC<UserPreferencesModalProps> = ({ open
 
   // Fake save
   const handleSave = () => {
-    toast.success?.("Preferences saved! (Not yet persisted)");
+    toast.success("Preferences saved! (Not yet persisted)");
     onClose();
   }
 
@@ -103,3 +104,4 @@ export const UserPreferencesModal: React.FC<UserPreferencesModalProps> = ({ open
     </Drawer>
   );
 }
+

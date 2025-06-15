@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface SecuritySettingsModalProps {
   open: boolean;
@@ -16,7 +17,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ op
   // Simulate password save
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info?.("Password changed (demo only)");
+    toast.info("Password changed (demo only)");
     onClose();
   };
 
@@ -41,7 +42,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ op
             <label className="mr-2 font-medium">Two-Factor Authentication</label>
             <Button type="button" onClick={() => {
               setTwoFAEnabled((v) => !v);
-              toast.info?.("This would configure 2FA in a real app!");
+              toast.info("This would configure 2FA in a real app!");
             }} variant={twoFAEnabled ? "default" : "outline"}>
               {twoFAEnabled ? "Enabled" : "Enable"}
             </Button>
@@ -66,3 +67,4 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ op
     </Dialog>
   );
 }
+
