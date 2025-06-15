@@ -114,15 +114,16 @@ export const LyraOverlay = () => {
       <div className="fixed bottom-8 right-8 z-50" style={{ pointerEvents: "all" }}>
         <Button
           onClick={() => setIsOpen(true)}
-          className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 border-2 border-purple-400/50 backdrop-blur-sm relative overflow-hidden group"
+          // Ensure content is centered and not overflowing
+          className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 border-2 border-purple-400/50 backdrop-blur-sm relative overflow-hidden group flex items-center justify-center p-0"
           style={{ boxShadow: "0 6px 28px 6px rgba(100,0,150,0.20)" }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          <div className="relative z-10 flex flex-col items-center">
+          <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
             <Bot className="w-7 h-7 text-white mb-1" />
             <span className="text-xs font-bold text-white">Lyra</span>
           </div>
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse shadow-lg"></div>
         </Button>
       </div>
     );
