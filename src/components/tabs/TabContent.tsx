@@ -157,7 +157,7 @@ export const TabContent: React.FC<TabContentProps> = ({
           onOpenExport={() => toast.info("Data export is coming soon.")}
           onOpenHistory={() => toast.info("Translation history is coming soon.")}
           onOpenComparePlans={() => setActiveTab('pricing')}
-          onOpenUpgradeNow={onUpgrade}
+          onOpenUpgradeNow={handleUpgrade}
           onOpenEnterprise={() => toast.info("Please contact sales for enterprise plans.")}
         />
       </TabsContent>

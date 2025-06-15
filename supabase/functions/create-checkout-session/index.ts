@@ -26,7 +26,7 @@ serve(async (req) => {
     const { priceId } = await req.json();
     if (!priceId) throw new Error("priceId is required");
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe(Deno.env.get("stripe_secret_linguista") || "", {
       apiVersion: "2023-10-16",
     });
 
