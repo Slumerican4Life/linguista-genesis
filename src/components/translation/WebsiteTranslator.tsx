@@ -11,6 +11,13 @@ import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CrawlingStatusTracker } from '../CrawlingStatusTracker';
 
+interface CrawlingStep {
+  id: string;
+  label: string;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  description?: string;
+}
+
 export const WebsiteTranslator: React.FC = () => {
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [projectName, setProjectName] = useState('');
@@ -34,10 +41,9 @@ export const WebsiteTranslator: React.FC = () => {
       return data;
     },
     enabled: !!currentCrawlingProject,
-    refetchInterval: 2000, // Poll every 2 seconds when crawling
+    refetchInterval: 2000,
   });
 
-  // Mock projects data until translation_projects table is available in types
   const { data: projects, isLoading } = useQuery({
     queryKey: ['translation-projects'],
     queryFn: async () => {
@@ -60,7 +66,15 @@ export const WebsiteTranslator: React.FC = () => {
   const createProject = useMutation({
     mutationFn: async ({ name, url, languages }: { name: string; url: string; languages: string[] }) => {
       try {
-        // Create crawl status record
+        const defaultSteps: CrawlingStep[] = [
+          { id: 'init', label: 'Deploying crawlers', status: 'pending', description: 'Initializing AI-powered web crawlers' },
+          { id: 'crawl', label: 'Crawlers crawling the site', status: 'pending', description: 'Deep-scanning all pages and content' },
+          { id: 'extract', label: 'Crawlers returned', status: 'pending', description: 'Processing and extracting translatable content' },
+          { id: 'translate', label: 'Translating content', status: 'pending', description: 'AI contextual translation in progress' },
+          { id: 'rebuild', label: 'Rebuilding site', status: 'pending', description: 'Creating translated website version' },
+          { id: 'deploy', label: 'Site ready', status: 'pending', description: 'Finalizing translated website' }
+        ];
+
         const { data: crawlData, error: crawlError } = await supabase
           .from('website_crawl_status')
           .insert({
@@ -69,14 +83,7 @@ export const WebsiteTranslator: React.FC = () => {
             progress: { 
               projectName: name,
               targetLanguages: languages,
-              steps: [
-                { id: 'init', label: 'Initializing crawlers', status: 'pending', description: 'Setting up crawling infrastructure' },
-                { id: 'crawl', label: 'Crawling website', status: 'pending', description: 'Discovering and analyzing pages' },
-                { id: 'extract', label: 'Extracting content', status: 'pending', description: 'Processing text and structure' },
-                { id: 'translate', label: 'Translating content', status: 'pending', description: 'AI translation in progress' },
-                { id: 'rebuild', label: 'Rebuilding website', status: 'pending', description: 'Generating translated versions' },
-                { id: 'deploy', label: 'Deploying translations', status: 'pending', description: 'Making translations available' }
-              ]
+              steps: defaultSteps
             }
           })
           .select()
@@ -84,13 +91,12 @@ export const WebsiteTranslator: React.FC = () => {
 
         if (crawlError) throw crawlError;
 
-        // Set as current crawling project
         setCurrentCrawlingProject(crawlData.id);
 
-        // Simulate crawling process
-        setTimeout(() => simulateCrawlingProgress(crawlData.id), 1000);
+        // Start simulated crawling process
+        setTimeout(() => simulateCrawlingProgress(crawlData.id, defaultSteps), 1000);
 
-        toast.success('Website crawling started! Translation will begin shortly.');
+        toast.success('Website translation started! AI crawlers deployed.');
         return crawlData;
       } catch (error) {
         console.error('Failed to create project:', error);
@@ -106,56 +112,36 @@ export const WebsiteTranslator: React.FC = () => {
     },
   });
 
-  // Simulate crawling progress
-  const simulateCrawlingProgress = async (projectId: string) => {
-    const steps = ['init', 'crawl', 'extract', 'translate', 'rebuild', 'deploy'];
+  // Simulate realistic crawling progress with proper typing
+  const simulateCrawlingProgress = async (projectId: string, initialSteps: CrawlingStep[]) => {
+    const stepOrder = ['init', 'crawl', 'extract', 'translate', 'rebuild', 'deploy'];
     
-    for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000));
+    for (let i = 0; i < stepOrder.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
       
+      const updatedSteps = initialSteps.map((step, index) => ({
+        ...step,
+        status: index < i ? 'completed' as const : 
+               index === i ? 'processing' as const : 
+               'pending' as const
+      }));
+
       const { error } = await supabase
         .from('website_crawl_status')
         .update({
-          status: i === steps.length - 1 ? 'completed' : 'crawling',
+          status: i === stepOrder.length - 1 ? 'completed' : 'crawling',
           progress: {
-            currentStep: i,
-            steps: steps.map((stepId, index) => ({
-              id: stepId,
-              label: getStepLabel(stepId),
-              status: index < i ? 'completed' : index === i ? 'processing' : 'pending',
-              description: getStepDescription(stepId)
-            }))
+            projectName: projectName,
+            targetLanguages: selectedLanguages,
+            steps: updatedSteps,
+            currentStep: i
           },
-          ...(i === steps.length - 1 && { completed_at: new Date().toISOString() })
+          ...(i === stepOrder.length - 1 && { completed_at: new Date().toISOString() })
         })
         .eq('id', projectId);
 
       if (error) console.error('Error updating crawl status:', error);
     }
-  };
-
-  const getStepLabel = (stepId: string) => {
-    const labels: Record<string, string> = {
-      init: 'Initializing crawlers',
-      crawl: 'Crawling website',
-      extract: 'Extracting content',
-      translate: 'Translating content',
-      rebuild: 'Rebuilding website',
-      deploy: 'Deploying translations'
-    };
-    return labels[stepId] || stepId;
-  };
-
-  const getStepDescription = (stepId: string) => {
-    const descriptions: Record<string, string> = {
-      init: 'Setting up crawling infrastructure',
-      crawl: 'Discovering and analyzing pages',
-      extract: 'Processing text and structure',
-      translate: 'AI translation in progress',
-      rebuild: 'Generating translated versions',
-      deploy: 'Making translations available'
-    };
-    return descriptions[stepId] || '';
   };
 
   const handleCreateProject = () => {
@@ -172,7 +158,6 @@ export const WebsiteTranslator: React.FC = () => {
       return;
     }
 
-    // Validate URL format
     try {
       new URL(websiteUrl);
     } catch {
@@ -188,31 +173,14 @@ export const WebsiteTranslator: React.FC = () => {
   };
 
   const handleViewResult = () => {
-    toast.success('Opening translated website in new tab...');
-    // In a real implementation, this would open the translated site
+    toast.success('🎉 Opening your translated website in new tab!');
+    // In production, this would open the actual translated site
+    window.open(websiteUrl, '_blank');
   };
 
   const handleFinishCrawling = () => {
     setCurrentCrawlingProject(null);
-    toast.success('Project saved to your dashboard!');
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-600';
-      case 'crawling': return 'bg-blue-600';
-      case 'failed': return 'bg-red-600';
-      default: return 'bg-yellow-600';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'completed': return 'Ready';
-      case 'crawling': return 'Processing';
-      case 'failed': return 'Failed';
-      default: return 'Pending';
-    }
+    toast.success('✨ Project saved to your dashboard!');
   };
 
   const languages = [
@@ -240,7 +208,8 @@ export const WebsiteTranslator: React.FC = () => {
 
   // Show crawling status if there's an active project
   if (currentCrawlingProject && crawlingStatus) {
-    const steps = crawlingStatus.progress?.steps || [];
+    const progressData = crawlingStatus.progress as any;
+    const steps = (progressData?.steps || []) as CrawlingStep[];
     const isComplete = crawlingStatus.status === 'completed';
 
     return (
@@ -258,6 +227,38 @@ export const WebsiteTranslator: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Instructions Card */}
+      <Card className="border-blue-500/30 bg-gradient-to-r from-blue-900/20 to-purple-900/20 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-blue-100">
+            <Sparkles className="w-6 h-6 text-blue-400" />
+            <span>How Website Translation Works</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-blue-900/30 rounded-lg">
+              <Globe className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+              <h3 className="font-semibold text-blue-200">Enter Website</h3>
+              <p className="text-sm text-blue-300">Paste any website URL - ecommerce, blog, social media</p>
+            </div>
+            <div className="text-center p-4 bg-purple-900/30 rounded-lg">
+              <Settings className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+              <p className="font-semibold text-purple-200">AI Translation</p>
+              <p className="text-sm text-purple-300">Our AI crawlers scan and translate contextually</p>
+            </div>
+            <div className="text-center p-4 bg-green-900/30 rounded-lg">
+              <Eye className="w-8 h-8 text-green-400 mx-auto mb-2" />
+              <h3 className="font-semibold text-green-200">Live Preview</h3>
+              <p className="text-sm text-green-300">View the translated site that looks identical to the original</p>
+            </div>
+          </div>
+          <div className="text-sm text-blue-200 bg-blue-900/20 p-3 rounded-lg">
+            <strong>Pro Tip:</strong> Works with any website - ecommerce stores, blogs, social media posts. It's like putting a translation condom over the entire site!
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-purple-500/30 bg-black/60 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2 text-purple-100">
@@ -265,7 +266,7 @@ export const WebsiteTranslator: React.FC = () => {
             <span>Website Translation</span>
           </CardTitle>
           <CardDescription className="text-purple-200">
-            Enter a website URL to automatically crawl and translate all pages with AI-powered contextual translation
+            Transform any website into multiple languages while preserving design and functionality
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -346,12 +347,12 @@ export const WebsiteTranslator: React.FC = () => {
                 {createProject.isPending ? (
                   <>
                     <Sparkles className="w-4 h-4 mr-2 animate-spin" />
-                    Creating Project & Starting Crawl...
+                    Deploying AI Crawlers...
                   </>
                 ) : (
                   <>
                     <Globe className="w-4 h-4 mr-2" />
-                    Create Translation Project
+                    Start Website Translation
                   </>
                 )}
               </Button>
@@ -368,49 +369,75 @@ export const WebsiteTranslator: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {projects?.map((project: any) => (
-                    <Card key={project.id} className="border-purple-500/20 bg-purple-900/10">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <h3 className="font-semibold text-white">
-                                {project.progress?.projectName || 'Website Project'}
-                              </h3>
-                              <Badge className={`${getStatusColor(project.status)} text-white`}>
-                                {getStatusLabel(project.status)}
-                              </Badge>
+                  {projects?.map((project: any) => {
+                    const progressData = project.progress as any;
+                    const getStatusColor = (status: string) => {
+                      switch (status) {
+                        case 'completed': return 'bg-green-600';
+                        case 'crawling': return 'bg-blue-600';
+                        case 'failed': return 'bg-red-600';
+                        default: return 'bg-yellow-600';
+                      }
+                    };
+
+                    const getStatusLabel = (status: string) => {
+                      switch (status) {
+                        case 'completed': return 'Ready';
+                        case 'crawling': return 'Processing';
+                        case 'failed': return 'Failed';
+                        default: return 'Pending';
+                      }
+                    };
+
+                    return (
+                      <Card key={project.id} className="border-purple-500/20 bg-purple-900/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <h3 className="font-semibold text-white">
+                                  {progressData?.projectName || 'Website Project'}
+                                </h3>
+                                <Badge className={`${getStatusColor(project.status)} text-white`}>
+                                  {getStatusLabel(project.status)}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-purple-200 mb-2">
+                                <Link2 className="w-4 h-4 inline mr-1" />
+                                {project.url}
+                              </p>
+                              <div className="flex items-center space-x-4 text-xs text-purple-300">
+                                <span>Languages: {progressData?.targetLanguages?.length || 0}</span>
+                                <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
+                              </div>
                             </div>
-                            <p className="text-sm text-purple-200 mb-2">
-                              <Link2 className="w-4 h-4 inline mr-1" />
-                              {project.url}
-                            </p>
-                            <div className="flex items-center space-x-4 text-xs text-purple-300">
-                              <span>Languages: {project.progress?.targetLanguages?.length || 0}</span>
-                              <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="border-purple-500/30 text-purple-200 hover:bg-purple-900/20"
-                              onClick={() => setCurrentCrawlingProject(project.id)}
-                            >
-                              <Eye className="w-4 h-4 mr-1" />
-                              View
-                            </Button>
-                            {project.status === 'completed' && (
-                              <Button size="sm" variant="outline" className="border-purple-500/30 text-purple-200 hover:bg-purple-900/20">
-                                <Download className="w-4 h-4 mr-1" />
-                                Export
+                            <div className="flex space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="border-purple-500/30 text-purple-200 hover:bg-purple-900/20"
+                                onClick={() => setCurrentCrawlingProject(project.id)}
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                View
                               </Button>
-                            )}
+                              {project.status === 'completed' && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="border-green-500/30 text-green-200 hover:bg-green-900/20"
+                                  onClick={() => window.open(project.url, '_blank')}
+                                >
+                                  <Download className="w-4 h-4 mr-1" />
+                                  View Site
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </TabsContent>

@@ -254,7 +254,11 @@ const Index = () => {
                 <img 
                   src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
                   alt="Linguista Logo" 
-                  className="w-10 h-10 object-contain brightness-150 contrast-125 drop-shadow-lg"
+                  className="w-8 h-8 object-contain filter brightness-200 contrast-150 drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]"
+                  style={{ 
+                    filter: 'brightness(2) contrast(1.5) drop-shadow(0 0 10px rgba(255,255,255,0.8))',
+                    imageRendering: 'crisp-edges'
+                  }}
                 />
               </div>
               <div>

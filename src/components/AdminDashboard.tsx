@@ -169,9 +169,9 @@ export const AdminDashboard = () => {
                       <span className="text-green-200">Database Status</span>
                       <Badge className="bg-green-600 text-white">Healthy</Badge>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-blue-900/20 rounded-lg">
-                      <span className="text-blue-200">Translation Engine</span>
-                      <Badge className="bg-blue-600 text-white">Online</Badge>
+                    <div className="flex justify-between items-center p-3 bg-green-900/20 rounded-lg">
+                      <span className="text-green-200">Supabase Connection</span>
+                      <Badge className="bg-green-600 text-white">Connected</Badge>
                     </div>
                   </div>
                 </div>

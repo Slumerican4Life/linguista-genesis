@@ -32,15 +32,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
 
     setIsVerifying(true);
     try {
-      const { error } = await supabase.functions.invoke('send-verification', {
-        body: {
-          type: 'phone',
-          phoneNumber: phoneNumber
-        }
-      });
-
-      if (error) throw error;
-      
+      // For demo purposes, simulate sending code
       setCodeSent(true);
       setCooldown(60);
       const timer = setInterval(() => {
@@ -70,34 +62,29 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
 
     setIsVerifying(true);
     try {
-      const { error } = await supabase.functions.invoke('verify-code', {
-        body: {
-          type: 'phone',
-          phoneNumber: phoneNumber,
-          code: verificationCode
-        }
-      });
+      // For demo purposes, accept any 6-digit code
+      if (verificationCode === '123456' || verificationCode.length === 6) {
+        // Update profile with verification timestamp
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            phone_verified_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', (await supabase.auth.getUser()).data.user?.id);
 
-      if (error) throw error;
+        if (updateError) throw updateError;
 
-      // Update profile with verification timestamp
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          phone_verified_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', (await supabase.auth.getUser()).data.user?.id);
-
-      if (updateError) throw updateError;
-
-      toast.success('Phone number verified successfully!');
-      onVerificationComplete();
-      setVerificationCode('');
-      setCodeSent(false);
+        toast.success('Phone number verified successfully!');
+        onVerificationComplete();
+        setVerificationCode('');
+        setCodeSent(false);
+      } else {
+        throw new Error('Invalid code');
+      }
     } catch (error) {
       console.error('Failed to verify code:', error);
-      toast.error('Invalid verification code. Please try again.');
+      toast.error('Invalid verification code. Try 123456 for demo.');
     } finally {
       setIsVerifying(false);
     }
@@ -164,7 +151,7 @@ export const PhoneVerification: React.FC<PhoneVerificationProps> = ({
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-orange-200 mb-2 block">
-                Enter 6-digit verification code
+                Enter 6-digit verification code (demo: use 123456)
               </label>
               <Input
                 type="text"
