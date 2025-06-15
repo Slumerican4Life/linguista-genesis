@@ -15,6 +15,10 @@ import { WebsiteTranslator } from './translation/WebsiteTranslator';
 import { UserPreferencesModal } from "@/components/preferences/UserPreferencesModal";
 import { SecuritySettingsModal } from "@/components/security/SecuritySettingsModal";
 import { BillingHistory } from "@/components/payment/BillingHistory";
+import { AnalyticsModal } from "@/components/analytics/AnalyticsModal";
+import { ExportDataModal } from "@/components/analytics/ExportDataModal";
+import { PerformanceModal } from "@/components/analytics/PerformanceModal";
+import { HistoryModal } from "@/components/analytics/HistoryModal";
 
 interface SettingsPanelProps {
   currentPlan: string;
@@ -242,10 +246,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
   const emailVerified = !!(userProfile as any)?.email_verified_at;
   const phoneVerified = !!(userProfile as any)?.phone_verified_at;
 
-  // Modal states
-  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
-  const [isSecurityOpen, setIsSecurityOpen] = useState(false);
-  const [isBillingOpen, setIsBillingOpen] = useState(false);
+  // Modal states for new dashboard features
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isPerfOpen, setIsPerfOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -540,6 +545,46 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
       <UserPreferencesModal open={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)} />
       {/* Security Dialog */}
       <SecuritySettingsModal open={isSecurityOpen} onClose={() => setIsSecurityOpen(false)} />
+      {/* Example DASHBOARD BUTTON GRID for quick actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <button
+          className="flex flex-col items-center justify-center bg-blue-900/60 p-6 rounded-xl hover:bg-blue-900 border border-blue-700 space-y-2"
+          onClick={() => setIsAnalyticsOpen(true)}
+          type="button"
+        >
+          <span className="text-lg font-bold text-white">Analytics</span>
+          <span className="text-sm text-blue-200">View usage insights</span>
+        </button>
+        <button
+          className="flex flex-col items-center justify-center bg-green-900/60 p-6 rounded-xl hover:bg-green-900 border border-green-700 space-y-2"
+          onClick={() => setIsExportOpen(true)}
+          type="button"
+        >
+          <span className="text-lg font-bold text-white">Export Data</span>
+          <span className="text-sm text-green-200">Download activity CSV</span>
+        </button>
+        <button
+          className="flex flex-col items-center justify-center bg-purple-900/60 p-6 rounded-xl hover:bg-purple-900 border border-purple-700 space-y-2"
+          onClick={() => setIsPerfOpen(true)}
+          type="button"
+        >
+          <span className="text-lg font-bold text-white">Performance</span>
+          <span className="text-sm text-purple-200">System/AI health</span>
+        </button>
+        <button
+          className="flex flex-col items-center justify-center bg-yellow-900/60 p-6 rounded-xl hover:bg-yellow-900 border border-yellow-700 space-y-2"
+          onClick={() => setIsHistoryOpen(true)}
+          type="button"
+        >
+          <span className="text-lg font-bold text-white">History</span>
+          <span className="text-sm text-yellow-200">Recent activity</span>
+        </button>
+      </div>
+      {/* Feature modals */}
+      <AnalyticsModal open={isAnalyticsOpen} onClose={() => setIsAnalyticsOpen(false)} />
+      <ExportDataModal open={isExportOpen} onClose={() => setIsExportOpen(false)} />
+      <PerformanceModal open={isPerfOpen} onClose={() => setIsPerfOpen(false)} />
+      <HistoryModal open={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
     </div>
   );
 };
