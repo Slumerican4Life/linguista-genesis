@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,12 +13,11 @@ import { CrawlingAgents } from '../CrawlingAgents';
 import { ProgressMeter } from '../ProgressMeter';
 import { NeuronixBrain } from '../NeuronixBrain';
 
-interface CrawlingStep {
+interface ProgressStep {
   id: string;
   label: string;
   status: 'pending' | 'processing' | 'completed' | 'error';
-  description?: string;
-  [key: string]: any;
+  description: string;
 }
 
 export const WebsiteTranslator: React.FC = () => {
@@ -67,7 +65,7 @@ export const WebsiteTranslator: React.FC = () => {
   const createProject = useMutation({
     mutationFn: async ({ name, url, languages }: { name: string; url: string; languages: string[] }) => {
       try {
-        const defaultSteps: CrawlingStep[] = [
+        const defaultSteps: ProgressStep[] = [
           { id: 'init', label: 'Deploying AI Crawlers', status: 'pending', description: 'Neuronix agents launching into cyberspace' },
           { id: 'crawl', label: 'Crawlers Crawling Site', status: 'pending', description: 'AI agents scanning every page and element' },
           { id: 'extract', label: 'Crawlers Returning', status: 'pending', description: 'Agents returning with extracted content' },
@@ -115,7 +113,7 @@ export const WebsiteTranslator: React.FC = () => {
   // Enhanced crawling simulation with realistic timing
   const simulateCrawlingProgress = async (
     projectId: string, 
-    initialSteps: CrawlingStep[], 
+    initialSteps: ProgressStep[], 
     projectName: string, 
     targetLanguages: string[]
   ) => {
@@ -198,7 +196,7 @@ export const WebsiteTranslator: React.FC = () => {
   // Show enhanced crawling status if there's an active project
   if (currentCrawlingProject && crawlingStatus) {
     const progressData = crawlingStatus.progress as any;
-    const steps = (progressData?.steps || []) as CrawlingStep[];
+    const steps = (progressData?.steps || []) as ProgressStep[];
     const isComplete = crawlingStatus.status === 'completed';
     const currentStep = progressData?.currentStep || 0;
 
