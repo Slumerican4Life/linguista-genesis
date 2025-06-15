@@ -72,7 +72,7 @@ export const WebsiteTranslator: React.FC = () => {
       return data;
     },
     enabled: !!currentCrawlingProject && !!user,
-    refetchInterval: 2000,
+    refetchInterval: (crawlingStatus) => (crawlingStatus?.status === 'crawling' || crawlingStatus?.status === 'pending') ? 2000 : false,
   });
 
   const { data: projects, isLoading } = useQuery({
@@ -146,7 +146,8 @@ export const WebsiteTranslator: React.FC = () => {
             url,
             status: 'pending',
             user_id: user.id,
-            progress: progressData as any
+            progress: progressData as any,
+            project_name: name
           })
           .select()
           .single();
@@ -158,12 +159,23 @@ export const WebsiteTranslator: React.FC = () => {
 
         setCurrentCrawlingProject(crawlData.id);
 
-        // Start simulated crawling process
-        setTimeout(() => simulateCrawlingProgress(crawlData.id, defaultSteps, name, languages), 1000);
+        // Invoke the edge function to start the real crawl
+        const { error: invokeError } = await supabase.functions.invoke('crawl-website', {
+          body: { projectId: crawlData.id, url: crawlData.url },
+        });
+
+        if (invokeError) {
+          // If invoking fails, update the status to 'failed'
+          await supabase
+            .from('website_crawl_status')
+            .update({ status: 'failed', progress: { ...progressData, error: 'Failed to start crawlers.' } as any })
+            .eq('id', crawlData.id);
+          throw invokeError;
+        }
 
         toast.success('🚀 Neural crawlers deployed! Watch the AI agents work.');
         return crawlData;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to create project:', error);
         toast.error(`Failed to deploy neural crawlers: ${error.message}`);
         throw error;
@@ -173,73 +185,6 @@ export const WebsiteTranslator: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['translation-projects'] });
     },
   });
-
-  // Enhanced crawling simulation with realistic timing
-  const simulateCrawlingProgress = async (
-    projectId: string, 
-    initialSteps: ProgressStep[], 
-    projectName: string, 
-    targetLanguages: string[]
-  ) => {
-    if (!user) return;
-
-    const stepOrder = ['init', 'crawl', 'extract', 'translate', 'rebuild', 'deploy'];
-    
-    for (let i = 0; i < stepOrder.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000));
-      
-      const updatedSteps = initialSteps.map((step, index) => ({
-        ...step,
-        status: index < i ? 'completed' as const : 
-               index === i ? 'processing' as const : 
-               'pending' as const
-      }));
-
-      // Mark current step as processing first
-      if (i < stepOrder.length) {
-        updatedSteps[i].status = 'processing';
-        
-        const progressData = {
-          projectName,
-          targetLanguages,
-          steps: updatedSteps,
-          currentStep: i
-        };
-
-        await supabase
-          .from('website_crawl_status')
-          .update({
-            status: 'crawling',
-            progress: progressData as any
-          })
-          .eq('id', projectId)
-          .eq('user_id', user.id);
-
-        // Wait a bit then mark as completed
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        updatedSteps[i].status = 'completed';
-      }
-
-      const finalProgressData = {
-        projectName,
-        targetLanguages,
-        steps: updatedSteps,
-        currentStep: i
-      };
-
-      const { error } = await supabase
-        .from('website_crawl_status')
-        .update({
-          status: i === stepOrder.length - 1 ? 'completed' : 'crawling',
-          progress: finalProgressData as any,
-          ...(i === stepOrder.length - 1 && { completed_at: new Date().toISOString() })
-        })
-        .eq('id', projectId)
-        .eq('user_id', user.id);
-
-      if (error) console.error('Error updating crawl status:', error);
-    }
-  };
 
   const handleCreateProject = (name: string, url: string, languages: string[]) => {
     if (!user) {

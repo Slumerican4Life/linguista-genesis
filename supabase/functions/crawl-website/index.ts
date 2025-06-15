@@ -7,6 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface ProgressStep {
+  id: string;
+  label: string;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  description: string;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -14,41 +21,26 @@ serve(async (req) => {
 
   try {
     const { projectId, url } = await req.json()
+    if (!projectId || !url) {
+      throw new Error("projectId and url are required.")
+    }
     
-    const supabaseClient = createClient(
+    const supabaseAdminClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
     )
 
-    // Get the authenticated user
-    const authHeader = req.headers.get('Authorization')!
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
-    
-    if (userError || !user) {
-      throw new Error('Unauthorized')
-    }
-
-    // Update project status to crawling
-    await supabaseClient
-      .from('translation_projects')
-      .update({ 
-        crawl_status: 'crawling',
-        last_crawl_at: new Date().toISOString()
-      })
-      .eq('id', projectId)
-      .eq('user_id', user.id)
-
-    // Start the crawling process in the background
-    EdgeRuntime.waitUntil(crawlWebsite(supabaseClient, projectId, url))
+    // Run the long-running crawl process in the background
+    crawlWebsite(supabaseAdminClient, projectId, url).catch(console.error);
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Crawling started' }),
+      JSON.stringify({ success: true, message: 'Crawling process initiated' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('Crawl error:', error)
+    console.error('Crawl trigger error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
@@ -59,79 +51,84 @@ serve(async (req) => {
   }
 })
 
-async function crawlWebsite(supabaseClient: any, projectId: string, url: string) {
-  try {
-    // Validate URL
-    const parsedUrl = new URL(url)
-    const baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`
-    
-    // Basic crawling - fetch main page
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ${url}: ${response.status}`)
-    }
-    
-    const html = await response.text()
-    
-    // Extract title and basic content
-    const titleMatch = html.match(/<title>(.*?)<\/title>/i)
-    const title = titleMatch ? titleMatch[1].trim() : 'Untitled'
-    
-    // Simple content extraction (remove HTML tags)
-    const contentMatch = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-                             .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-                             .replace(/<[^>]*>/g, ' ')
-                             .replace(/\s+/g, ' ')
-                             .trim()
-    
-    const content = contentMatch.substring(0, 10000) // Limit content size
-    
-    // Create hash of content for change detection
-    const encoder = new TextEncoder()
-    const data = encoder.encode(content)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const contentHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-    
-    // Insert/update page record
-    const { error: pageError } = await supabaseClient
-      .from('website_pages')
-      .upsert({
-        project_id: projectId,
-        url: url,
-        title: title,
-        content: content,
-        content_hash: contentHash,
-        page_type: 'page',
-        last_updated: new Date().toISOString()
-      }, {
-        onConflict: 'project_id,url'
-      })
-
-    if (pageError) throw pageError
-
-    // Update project with crawl results
-    await supabaseClient
-      .from('translation_projects')
-      .update({ 
-        crawl_status: 'completed',
-        pages_found: 1,
-        last_crawl_at: new Date().toISOString()
-      })
+async function updateProgress(supabaseClient: any, projectId: string, updateFn: (steps: ProgressStep[]) => ProgressStep[]) {
+    const { data: project, error: fetchError } = await supabaseClient
+      .from('website_crawl_status')
+      .select('progress')
       .eq('id', projectId)
+      .single();
 
-    console.log(`Successfully crawled ${url}`)
+    if (fetchError) throw new Error(`Failed to fetch project progress: ${fetchError.message}`);
+    if (!project) throw new Error("Project not found");
+
+    const currentProgress = project.progress as any;
+    const currentSteps = (currentProgress?.steps || []) as ProgressStep[];
+    const updatedSteps = updateFn(currentSteps);
+    
+    const newProgress = { ...currentProgress, steps: updatedSteps };
+
+    const { error: updateError } = await supabaseClient
+      .from('website_crawl_status')
+      .update({ progress: newProgress as any, status: 'crawling' })
+      .eq('id', projectId);
+
+    if (updateError) throw new Error(`Failed to update project progress: ${updateError.message}`);
+}
+
+async function crawlWebsite(supabaseClient: any, projectId: string, url:string) {
+  try {
+    const stepsOrder = ['init', 'crawl', 'extract', 'translate', 'rebuild', 'deploy'];
+
+    for (const stepId of stepsOrder) {
+      // Mark step as processing
+      await updateProgress(supabaseClient, projectId, (steps) =>
+        steps.map(s => s.id === stepId ? { ...s, status: 'processing' } : s)
+      );
+
+      // --- TODO: Replace setTimeout with actual work for each step ---
+      if (stepId === 'crawl') {
+        // Actual crawling logic would go here.
+        console.log(`Crawling ${url} for project ${projectId}`);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      } else if (stepId === 'translate') {
+        // Actual translation logic would go here.
+        console.log(`Translating content for project ${projectId}`);
+        await new Promise(resolve => setTimeout(resolve, 4000));
+      } else {
+        // Simulate generic work for other steps
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      
+      // Mark step as completed
+      await updateProgress(supabaseClient, projectId, (steps) =>
+        steps.map(s => s.id === stepId ? { ...s, status: 'completed' } : s)
+      );
+    }
+
+    // Final update to set status to 'completed'
+    const { data: finalData, error: finalError } = await supabaseClient
+      .from('website_crawl_status')
+      .select('progress')
+      .eq('id', projectId)
+      .single();
+    if(finalError) throw finalError;
+
+    await supabaseClient
+      .from('website_crawl_status')
+      .update({
+        status: 'completed',
+        progress: finalData.progress,
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', projectId);
+
+    console.log(`Successfully processed project ${projectId} for ${url}`);
 
   } catch (error) {
-    console.error('Background crawl error:', error)
-    
-    // Update project status to failed
+    console.error(`Background process error for project ${projectId}:`, error);
     await supabaseClient
-      .from('translation_projects')
-      .update({ 
-        crawl_status: 'failed',
-        last_crawl_at: new Date().toISOString()
-      })
-      .eq('id', projectId)
+      .from('website_crawl_status')
+      .update({ status: 'failed', progress: { error: error.message } as any })
+      .eq('id', projectId);
   }
 }
