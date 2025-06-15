@@ -61,6 +61,7 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/`,
       cancel_url: `${req.headers.get("origin")}/`,
+      client_reference_id: user.id, // This ensures the user is linked to the session for webhooks
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
