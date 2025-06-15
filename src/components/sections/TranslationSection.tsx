@@ -163,7 +163,6 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
       {Object.keys(translations).length > 0 && (
         <TranslationPreview
           translations={translations}
-          inputText={inputText}
         />
       )}
     </div>
