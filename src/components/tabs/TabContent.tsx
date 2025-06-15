@@ -83,6 +83,16 @@ export const TabContent: React.FC<TabContentProps> = ({
     }
   };
 
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error('Error signing out');
+    } else {
+      toast.success('Signed out successfully');
+      setActiveTab('translate');
+    }
+  };
+
   return (
     <>
       <TabsContent value="translate" className="mt-8">
@@ -108,13 +118,11 @@ export const TabContent: React.FC<TabContentProps> = ({
         <PricingPlans
           currentPlan={currentPlan}
           onSelectPlan={onSelectPlan}
-          user={user}
         />
       </TabsContent>
 
       <TabsContent value="dashboard" className="mt-8">
         <UsageDashboard 
-          currentPlan={currentPlan}
           user={user}
         />
       </TabsContent>
@@ -124,12 +132,12 @@ export const TabContent: React.FC<TabContentProps> = ({
           user={user}
           userProfile={userProfile}
           onOpenAuthModal={onOpenAuthModal}
+          onSignOut={handleSignOut}
         />
       </TabsContent>
 
       <TabsContent value="settings" className="mt-8">
         <SettingsPanel 
-          userProfile={userProfile}
           onCancelSubscription={handleCancelSubscription}
         />
       </TabsContent>

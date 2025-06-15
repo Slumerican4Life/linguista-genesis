@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Globe, Eye, CheckCircle } from 'lucide-react';
+import { Globe, Eye, CheckCircle, Play, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -226,14 +226,21 @@ export const WebsiteTranslator: React.FC = () => {
       if (projectId === currentCrawlingProject) {
         setCurrentCrawlingProject(null);
       }
-      // Use toast for confirmation
-      // (On this codebase, "sonner" can be used directly)
-      // @ts-ignore
-      if (window.toast) window.toast.success('Website unmasked (removed) successfully!');
+      toast.success('Website unmasked (removed) successfully!');
     } catch (e: any) {
-      // @ts-ignore
-      if (window.toast) window.toast.error('Failed to unmask website: ' + e.message);
+      toast.error('Failed to unmask website: ' + e.message);
     }
+  };
+
+  const handleLiveDemo = () => {
+    setPreviewProject({
+      url: "https://example.com",
+      progress: {
+        targetLanguages: ["spanish", "french", "german", "japanese"]
+      }
+    });
+    setShowPreview(true);
+    toast.success('🎬 Starting live translation demonstration!');
   };
 
   // Show login message if not authenticated
@@ -241,6 +248,25 @@ export const WebsiteTranslator: React.FC = () => {
     return (
       <div className="space-y-6">
         <TranslationInstructions />
+        
+        {/* Demo Preview for Non-Users */}
+        <Card className="border-green-500/50 bg-gradient-to-br from-green-900/20 to-black/80 backdrop-blur-lg shadow-2xl">
+          <CardContent className="p-8 text-center space-y-6">
+            <div className="space-y-4">
+              <Zap className="w-16 h-16 text-green-400 mx-auto animate-pulse" />
+              <h3 className="text-3xl font-bold text-green-100">See Translation in Action!</h3>
+              <p className="text-green-200 text-lg">Watch how any website gets translated instantly with AI</p>
+            </div>
+            
+            <Button
+              onClick={handleLiveDemo}
+              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold px-8 py-4 text-lg"
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Watch Live Demo
+            </Button>
+          </CardContent>
+        </Card>
         
         <Card className="border-purple-500/30 bg-gradient-to-br from-black/80 to-purple-900/20 backdrop-blur-lg shadow-2xl">
           <CardContent className="p-8 text-center space-y-6">
@@ -270,7 +296,6 @@ export const WebsiteTranslator: React.FC = () => {
     const isComplete = crawlingStatus.status === 'completed';
     const currentStep = progressData?.currentStep || 0;
 
-    // Show preview overlay if user requests live masked preview, only if completed
     return (
       <div className="space-y-8 relative">
         {/* Crawling Agents Animation */}
@@ -361,14 +386,13 @@ export const WebsiteTranslator: React.FC = () => {
                   <CheckCircle className="w-5 h-5 mr-2" />
                   Finish
                 </Button>
-                {/* New: Masked Preview button */}
+                {/* Enhanced Live Preview button */}
                 <Button
                   onClick={() => setShowPreview(true)}
-                  variant="outline"
-                  className="border-purple-500 text-purple-200 hover:bg-purple-900/20 font-bold px-8 py-4 text-lg"
+                  className="bg-gradient-to-r from-green-600 to-purple-600 hover:from-green-700 hover:to-purple-700 text-white font-bold px-8 py-4 text-lg"
                 >
-                  <Globe className="w-5 h-5 mr-2" />
-                  Live Masked Preview
+                  <Zap className="w-5 h-5 mr-2" />
+                  Live Preview Demo
                 </Button>
               </div>
             </CardContent>
@@ -381,6 +405,32 @@ export const WebsiteTranslator: React.FC = () => {
   return (
     <div className="space-y-6">
       <TranslationInstructions />
+      
+      {/* Live Demo Section for Logged In Users */}
+      <Card className="border-green-500/50 bg-gradient-to-br from-green-900/10 to-black/80 backdrop-blur-lg shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-green-900/60 to-blue-900/60 rounded-t-lg border-b border-green-500/30">
+          <CardTitle className="flex items-center space-x-4 text-green-100">
+            <Zap className="w-6 h-6 animate-pulse" />
+            <div>
+              <span className="text-xl font-black">Translation Proof of Concept</span>
+              <p className="text-green-200 text-sm font-normal mt-1">See the AI translation in action</p>
+            </div>
+          </CardTitle>
+          <CardDescription className="text-green-200">
+            Click below to see a live demonstration of how any website gets translated
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 text-center">
+          <Button
+            onClick={handleLiveDemo}
+            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold px-8 py-4 text-lg"
+          >
+            <Play className="w-5 h-5 mr-2" />
+            Watch Live Translation Demo
+          </Button>
+        </CardContent>
+      </Card>
+
       <Card className="border-purple-500/30 bg-gradient-to-br from-black/80 to-purple-900/20 backdrop-blur-lg shadow-2xl">
         <CardHeader className="bg-gradient-to-r from-purple-900/80 to-blue-900/80 rounded-t-lg border-b border-purple-500/30">
           <CardTitle className="flex items-center space-x-4 text-purple-100">
@@ -435,6 +485,16 @@ export const WebsiteTranslator: React.FC = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Live Preview Overlay */}
+      {showPreview && previewProject && (
+        <MaskedPreviewOverlay
+          url={previewProject.url}
+          languages={previewProject.progress?.targetLanguages || ["spanish", "french", "german", "japanese"]}
+          defaultLanguage={previewProject.progress?.targetLanguages?.[0] || "spanish"}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 };
