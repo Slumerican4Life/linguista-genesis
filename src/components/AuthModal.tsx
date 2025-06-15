@@ -37,6 +37,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
   const [isLeaked, setIsLeaked] = useState<boolean | undefined>(undefined);
   const [isCheckingLeak, setIsCheckingLeak] = useState(false);
   const [leakCheckTimeout, setLeakCheckTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [leakCheckError, setLeakCheckError] = useState<string | null>(null); // New state for error message
 
   // Helper function to mask phone numbers for security
   const maskPhoneNumber = (phone: string) => {
@@ -50,13 +51,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
   const checkForLeaks = useCallback(async (password: string) => {
     if (password.length < 6) {
       setIsLeaked(undefined);
+      setLeakCheckError(null);
       return;
     }
 
     setIsCheckingLeak(true);
-    const result = await checkPasswordLeak(password);
-    setIsLeaked(result.isLeaked);
-    setIsCheckingLeak(false);
+    setLeakCheckError(null); // Reset error on new check
+    try {
+      const result = await checkPasswordLeak(password);
+      setIsLeaked(result.isLeaked);
+    } catch (error: any) {
+      setIsLeaked(undefined); // Unset leak status on error
+      setLeakCheckError(error.message); // Store the error message
+      toast({
+        title: "Security Check Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingLeak(false);
+    }
   }, []);
 
   // Handle password change with strength checking and leak detection
@@ -72,6 +86,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
       clearTimeout(leakCheckTimeout);
     }
     
+    // Clear any previous leak check error when the user types
+    setLeakCheckError(null);
+
     if (password.length >= 6) {
       const timeout = setTimeout(() => {
         checkForLeaks(password);
@@ -123,12 +140,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
           throw new Error("Passwords don't match");
         }
 
-        // Check password strength
         if (!passwordStrength.isStrong) {
           throw new Error("Please create a stronger password following the requirements above");
         }
 
-        // Check for leaked password
+        // Check if leak check failed and block submission
+        if (leakCheckError) {
+          throw new Error(leakCheckError);
+        }
+
         if (isLeaked) {
           throw new Error("This password has been compromised in data breaches. Please choose a different password.");
         }
@@ -404,7 +424,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={isLoading || !passwordStrength.isStrong || isLeaked || isCheckingLeak}
+                    disabled={isLoading || !passwordStrength.isStrong || isLeaked === true || isCheckingLeak || !!leakCheckError}
                   >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Account

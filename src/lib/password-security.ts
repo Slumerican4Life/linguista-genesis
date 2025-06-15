@@ -27,9 +27,9 @@ export async function checkPasswordLeak(password: string): Promise<LeakCheckResu
     const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
     
     if (!response.ok) {
-      // If API fails, don't block user but log for monitoring
+      // If API fails, THROW an error instead of failing silently.
       console.warn('Password leak check API unavailable');
-      return { isLeaked: false };
+      throw new Error('Security check is temporarily unavailable. Please try again in a moment.');
     }
     
     const text = await response.text();
@@ -45,7 +45,11 @@ export async function checkPasswordLeak(password: string): Promise<LeakCheckResu
     return { isLeaked: false };
   } catch (error) {
     console.warn('Password leak check failed:', error);
-    return { isLeaked: false };
+    // Re-throw a user-friendly error.
+    if (error instanceof Error && error.message.startsWith('Security check')) {
+      throw error;
+    }
+    throw new Error('Could not perform security check. Please ensure you are connected to the internet.');
   }
 }
 
