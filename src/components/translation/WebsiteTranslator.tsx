@@ -464,8 +464,6 @@ export const WebsiteTranslator: React.FC = () => {
                   createProject.mutate({ name, url, languages })
                 }
                 isCreating={createProject.isPending}
-                sitesAllowed={sitesAllowed}
-                projectsCount={projects?.length || 0}
               />
             </TabsContent>
 
@@ -476,10 +474,6 @@ export const WebsiteTranslator: React.FC = () => {
                 onViewProject={handleViewProject}
                 onUnmaskProject={handleUnmaskProject}
                 canUnmask={true}
-                onShowPreview={(proj) => {
-                  setPreviewProject(proj);
-                  setShowPreview(true);
-                }}
               />
               {/* Masked Preview overlay for projects */}
               {showPreview && previewProject && (
