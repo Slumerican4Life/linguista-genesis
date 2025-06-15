@@ -12,6 +12,7 @@ import { TranslationProjectList } from './TranslationProjectList';
 import { CrawlingAgents } from '../CrawlingAgents';
 import { ProgressMeter } from '../ProgressMeter';
 import { NeuronixBrain } from '../NeuronixBrain';
+import { MaskedPreviewOverlay } from "./MaskedPreviewOverlay";
 
 interface ProgressStep {
   id: string;
@@ -22,6 +23,8 @@ interface ProgressStep {
 
 export const WebsiteTranslator: React.FC = () => {
   const [currentCrawlingProject, setCurrentCrawlingProject] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewProject, setPreviewProject] = useState<any | null>(null);
   const queryClient = useQueryClient();
 
   // Check if user is authenticated
@@ -94,17 +97,17 @@ export const WebsiteTranslator: React.FC = () => {
     enabled: !!user,
   });
 
-  // Subscription plan limits
+  // Site limit enforcement logic
   const ownerUnlimited = userProfile?.role === 'owner';
   const subscription = userProfile?.subscriptions?.[0];
   const currentPlan = subscription?.tier || 'free';
   const planLimits: Record<string, number> = {
-    free: 1,
-    professional: 3,
-    premium: 10,
-    business: 50
+    free: 0,
+    professional: 1,
+    premium: 2,
+    business: Infinity
   };
-  const sitesAllowed = ownerUnlimited ? Infinity : (planLimits[currentPlan] || 1);
+  const sitesAllowed = ownerUnlimited ? Infinity : (planLimits[currentPlan] ?? 0);
 
   // Create new translation project with enforcement
   const createProject = useMutation({
@@ -320,6 +323,7 @@ export const WebsiteTranslator: React.FC = () => {
     const isComplete = crawlingStatus.status === 'completed';
     const currentStep = progressData?.currentStep || 0;
 
+    // Show preview overlay if user requests live masked preview, only if completed
     return (
       <div className="space-y-8 relative">
         {/* Crawling Agents Animation */}
@@ -374,6 +378,16 @@ export const WebsiteTranslator: React.FC = () => {
           </Card>
         </div>
 
+        {/* Render the Masked Preview Overlay */}
+        {isComplete && showPreview && (
+          <MaskedPreviewOverlay
+            url={crawlingStatus.url}
+            languages={progressData?.targetLanguages || []}
+            defaultLanguage={(progressData?.targetLanguages || [])[0]}
+            onClose={() => setShowPreview(false)}
+          />
+        )}
+
         {/* Enhanced Completion Section */}
         {isComplete && (
           <Card className="border-2 border-green-500/40 bg-gradient-to-br from-green-900/20 to-black/80 backdrop-blur-lg">
@@ -400,6 +414,15 @@ export const WebsiteTranslator: React.FC = () => {
                   <CheckCircle className="w-5 h-5 mr-2" />
                   Finish
                 </Button>
+                {/* New: Masked Preview button */}
+                <Button
+                  onClick={() => setShowPreview(true)}
+                  variant="outline"
+                  className="border-purple-500 text-purple-200 hover:bg-purple-900/20 font-bold px-8 py-4 text-lg"
+                >
+                  <Globe className="w-5 h-5 mr-2" />
+                  Live Masked Preview
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -411,8 +434,6 @@ export const WebsiteTranslator: React.FC = () => {
   return (
     <div className="space-y-6">
       <TranslationInstructions />
-
-      {/* Main Translation Interface with Neuronix Brain */}
       <Card className="border-purple-500/30 bg-gradient-to-br from-black/80 to-purple-900/20 backdrop-blur-lg shadow-2xl">
         <CardHeader className="bg-gradient-to-r from-purple-900/80 to-blue-900/80 rounded-t-lg border-b border-purple-500/30">
           <CardTitle className="flex items-center space-x-4 text-purple-100">
@@ -443,6 +464,8 @@ export const WebsiteTranslator: React.FC = () => {
                   createProject.mutate({ name, url, languages })
                 }
                 isCreating={createProject.isPending}
+                sitesAllowed={sitesAllowed}
+                projectsCount={projects?.length || 0}
               />
             </TabsContent>
 
@@ -453,7 +476,20 @@ export const WebsiteTranslator: React.FC = () => {
                 onViewProject={handleViewProject}
                 onUnmaskProject={handleUnmaskProject}
                 canUnmask={true}
+                onShowPreview={(proj) => {
+                  setPreviewProject(proj);
+                  setShowPreview(true);
+                }}
               />
+              {/* Masked Preview overlay for projects */}
+              {showPreview && previewProject && (
+                <MaskedPreviewOverlay
+                  url={previewProject.url}
+                  languages={(previewProject.progress?.targetLanguages) || []}
+                  defaultLanguage={previewProject.progress?.targetLanguages?.[0]}
+                  onClose={() => setShowPreview(false)}
+                />
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
