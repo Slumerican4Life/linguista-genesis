@@ -474,12 +474,16 @@ export const WebsiteTranslator: React.FC = () => {
                 onViewProject={handleViewProject}
                 onUnmaskProject={handleUnmaskProject}
                 canUnmask={true}
+                onShowPreview={(proj) => {
+                  setPreviewProject(proj);
+                  setShowPreview(true);
+                }}
               />
               {/* Masked Preview overlay for projects */}
               {showPreview && previewProject && (
                 <MaskedPreviewOverlay
                   url={previewProject.url}
-                  languages={(previewProject.progress?.targetLanguages) || []}
+                  languages={previewProject.progress?.targetLanguages || []}
                   defaultLanguage={previewProject.progress?.targetLanguages?.[0]}
                   onClose={() => setShowPreview(false)}
                 />
