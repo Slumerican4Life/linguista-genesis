@@ -241,71 +241,90 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-purple-900/20">
       {/* Add AdSense script to head */}
       <AdSenseScript />
       
-      {/* Header */}
-      <header className="relative z-10 border-b border-blue-600 bg-black">
-        <div className="container mx-auto px-4 py-6">
+      {/* Enhanced Header */}
+      <header className="relative z-10 border-b border-gradient-to-r from-purple-600/50 via-blue-600/50 to-indigo-600/50 bg-gradient-to-r from-black via-gray-900 to-black backdrop-blur-xl">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-blue-600/5 to-indigo-600/5"></div>
+        <div className="container mx-auto px-4 py-6 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl flex items-center justify-center border-2 border-white/20 shadow-lg">
-                <img 
-                  src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
-                  alt="Linguista Logo" 
-                  className="w-8 h-8 object-contain filter brightness-200 contrast-150 drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]"
-                  style={{ 
-                    filter: 'brightness(2) contrast(1.5) drop-shadow(0 0 10px rgba(255,255,255,0.8))',
-                    imageRendering: 'crisp-edges'
-                  }}
-                />
+            <div className="flex items-center space-x-6">
+              <div className="relative group">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center border-2 border-purple-400/30 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105">
+                  <img 
+                    src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
+                    alt="Linguista Logo" 
+                    className="w-10 h-10 object-contain filter brightness-200 contrast-150 drop-shadow-[0_0_15px_rgba(255,255,255,0.9)]"
+                    style={{ 
+                      filter: 'brightness(2.5) contrast(1.8) drop-shadow(0 0 15px rgba(255,255,255,0.9))',
+                      imageRendering: 'crisp-edges'
+                    }}
+                  />
+                </div>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center border-2 border-white/20 animate-pulse">
+                  <span className="text-xs">🧠</span>
+                </div>
               </div>
               <div>
-                <h1 className="text-3xl font-black text-white drop-shadow-lg">
+                <h1 className="text-4xl font-black bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-2xl">
                   Linguista
                 </h1>
-                <p className="text-sm text-blue-300 font-semibold">by Neuronix ~ Language Rewired</p>
+                <p className="text-sm bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent font-bold">
+                  by Neuronix ~ Language Rewired with AI
+                </p>
               </div>
-              {/* Add Neuronix Brain Visual */}
-              <div className="hidden md:flex items-center space-x-3 ml-6 p-3 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg border border-purple-500/30">
-                <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
-                  <span className="text-lg">🧠</span>
+              
+              {/* Enhanced Neuronix Brain Visual */}
+              <div className="hidden md:flex items-center space-x-4 ml-8 p-4 bg-gradient-to-br from-purple-900/40 via-blue-900/40 to-indigo-900/40 rounded-2xl border border-purple-500/30 backdrop-blur-sm shadow-2xl">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500 rounded-full flex items-center justify-center animate-pulse shadow-lg">
+                    <span className="text-2xl">🧠</span>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full border border-white/30 animate-bounce"></div>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-yellow-200">Neural Network</p>
-                  <p className="text-xs text-purple-300">AI Translation Core</p>
+                  <p className="text-sm font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                    Neuronix Neural Core
+                  </p>
+                  <p className="text-xs text-purple-300 font-medium">Advanced AI Translation Engine</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-green-400 font-bold">Neural Pathways Active</span>
+                  </div>
                 </div>
               </div>
             </div>
+            
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-purple-700 text-white border-purple-500 px-3 py-1 font-bold">
-                <Bot className="w-3 h-3 mr-1" />
-                5 AI Agents Active
+              <Badge variant="secondary" className="bg-gradient-to-r from-purple-700/80 to-blue-700/80 text-white border border-purple-500/30 px-4 py-2 font-bold shadow-lg">
+                <Bot className="w-4 h-4 mr-2" />
+                5 AI Agents Online
               </Badge>
               {userProfile && (
-                <Badge variant="outline" className="px-3 py-1 font-bold border-blue-500 text-blue-200 bg-blue-900">
-                  <Shield className="w-3 h-3 mr-1" />
+                <Badge variant="outline" className="px-4 py-2 font-bold border-blue-500/50 text-blue-200 bg-gradient-to-r from-blue-900/40 to-purple-900/40 backdrop-blur-sm">
+                  <Shield className="w-4 h-4 mr-2" />
                   {userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)}
                 </Badge>
               )}
               {user ? (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-blue-200 font-medium">
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-blue-200 font-medium bg-gradient-to-r from-blue-900/30 to-purple-900/30 px-3 py-1 rounded-lg backdrop-blur-sm">
                     Welcome, {userProfile?.full_name || user.email}
                   </span>
-                  <Button variant="outline" size="sm" onClick={handleSignOut} className="border-red-500 text-red-400 hover:bg-red-900 bg-black">
+                  <Button variant="outline" size="sm" onClick={handleSignOut} className="border-red-500/50 text-red-400 hover:bg-red-900/30 bg-black/50 backdrop-blur-sm">
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2">
-                  <Button onClick={() => { setIsSignUp(false); setIsAuthModalOpen(true); }} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                <div className="flex items-center space-x-3">
+                  <Button onClick={() => { setIsSignUp(false); setIsAuthModalOpen(true); }} size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg">
                     <LogIn className="w-4 h-4 mr-2" />
                     Sign In
                   </Button>
-                  <Button onClick={() => { setIsSignUp(true); setIsAuthModalOpen(true); }} size="sm" variant="outline" className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black">
+                  <Button onClick={() => { setIsSignUp(true); setIsAuthModalOpen(true); }} size="sm" variant="outline" className="border-blue-500/50 text-blue-200 hover:bg-blue-900/30 bg-black/50 backdrop-blur-sm">
                     Sign Up
                   </Button>
                 </div>
@@ -322,40 +341,40 @@ const Index = () => {
       </div>
 
       <main className="relative z-10 container mx-auto px-4 py-8">
-        {/* Navigation Tabs */}
+        {/* Enhanced Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full h-12 bg-black border border-blue-600" style={{
+          <TabsList className="grid w-full h-14 bg-gradient-to-r from-black via-gray-900 to-black border border-purple-600/30 backdrop-blur-xl rounded-2xl shadow-2xl" style={{
             gridTemplateColumns: isAdmin ? 'repeat(6, 1fr)' : 'repeat(5, 1fr)'
           }}>
-            <TabsTrigger value="translate" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
-              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+            <TabsTrigger value="translate" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
+              <Sparkles className="w-4 h-4" />
               <span className="hidden sm:inline">Translate</span>
               <span className="sm:hidden">Text</span>
             </TabsTrigger>
-            <TabsTrigger value="website" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
-              <Globe className="w-3 h-3 sm:w-4 sm:h-4" />
+            <TabsTrigger value="website" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
+              <Globe className="w-4 h-4" />
               <span className="hidden sm:inline">Website</span>
               <span className="sm:hidden">Web</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
-              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
+            <TabsTrigger value="dashboard" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
+              <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Dashboard</span>
               <span className="sm:hidden">Stats</span>
             </TabsTrigger>
             {isAdmin && (
-              <TabsTrigger value="admin" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
-                <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+              <TabsTrigger value="admin" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
+                <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Admin</span>
                 <span className="sm:hidden">Admin</span>
               </TabsTrigger>
             )}
-            <TabsTrigger value="pricing" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
-              <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
+            <TabsTrigger value="pricing" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
+              <CreditCard className="w-4 h-4" />
               <span className="hidden sm:inline">Pricing</span>
               <span className="sm:hidden">Plans</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center justify-center space-x-1 text-xs sm:text-sm font-bold data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200 px-2">
-              <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
+            <TabsTrigger value="settings" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
+              <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Settings</span>
               <span className="sm:hidden">Config</span>
             </TabsTrigger>
@@ -363,49 +382,63 @@ const Index = () => {
 
           {/* Translation Tab */}
           <TabsContent value="translate" className="space-y-8">
-            {/* Enhanced Hero Section with 3D Earth and Brain Technology */}
-            <div className="text-center space-y-6 mb-12 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-blue-600/5 to-indigo-600/5 animate-pulse"></div>
-              <div className="relative z-10">
-                <div className="flex items-center justify-center mb-6">
+            {/* Enhanced Hero Section */}
+            <div className="text-center space-y-8 mb-12 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-indigo-600/10 animate-pulse rounded-3xl"></div>
+              <div className="relative z-10 p-8">
+                <div className="flex items-center justify-center mb-8">
                   <div className="relative">
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-600/30 to-purple-700/30 animate-spin-slow border-2 border-blue-500" 
+                    <div className="w-40 h-40 rounded-full bg-gradient-to-br from-purple-600/30 via-blue-600/30 to-indigo-600/30 animate-spin-slow border-4 border-purple-500/50 shadow-2xl" 
                          style={{ animationDuration: '20s' }}>
-                      <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-700/50 to-purple-700/50 flex items-center justify-center">
-                        <Globe className="w-16 h-16 text-blue-300 animate-pulse" />
+                      <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-700/50 via-blue-700/50 to-indigo-700/50 flex items-center justify-center backdrop-blur-sm">
+                        <Globe className="w-20 h-20 text-blue-300 animate-pulse" />
                       </div>
                     </div>
-                    {/* Brain Technology Indicator */}
-                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center border-2 border-white/20 animate-bounce">
-                      <span className="text-2xl">🧠</span>
+                    {/* Enhanced Brain Technology Indicator */}
+                    <div className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500 rounded-full flex items-center justify-center border-4 border-white/30 animate-bounce shadow-2xl">
+                      <span className="text-3xl">🧠</span>
+                    </div>
+                    {/* Neural network dots */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <div className="w-4 h-4 bg-purple-500 rounded-full animate-ping"></div>
                     </div>
                   </div>
                 </div>
-                <h2 className="text-6xl font-black text-white mb-6 relative z-10">
+                <h2 className="text-7xl font-black text-white mb-8 relative z-10">
                   Transform Your Content with
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 block mt-2">
+                  <span className="block mt-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 via-indigo-500 to-purple-500 animate-gradient">
                     Neuronix Brain Power
                   </span>
                 </h2>
-              </div>
-              <p className="text-xl text-blue-200 max-w-3xl mx-auto leading-relaxed font-medium relative z-10">
-                Our AI agent team powered by Neuronix neural networks delivers contextual, culturally-rich translations that capture tone, humor, and local nuances—not just literal word conversion.
-              </p>
-              <div className="flex justify-center space-x-6 mt-8 relative z-10">
-                <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 text-sm">
-                  🧠 Neural Translation
-                </Badge>
-                <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 text-sm">
-                  🌍 Cultural Context
-                </Badge>
-                <Badge className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 text-sm">
-                  ⚡ Real-time Processing
-                </Badge>
+                <p className="text-2xl text-purple-200 max-w-4xl mx-auto leading-relaxed font-medium relative z-10 mb-8">
+                  Our AI agent team powered by Neuronix neural networks delivers contextual, culturally-rich translations that capture tone, humor, and local nuances—not just literal word conversion.
+                </p>
+                <div className="flex justify-center space-x-8 mt-8 relative z-10">
+                  <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 text-lg font-bold shadow-2xl">
+                    🧠 Neural Translation
+                  </Badge>
+                  <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 text-lg font-bold shadow-2xl">
+                    🌍 Cultural Context
+                  </Badge>
+                  <Badge className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 text-lg font-bold shadow-2xl">
+                    ⚡ Real-time Processing
+                  </Badge>
+                </div>
               </div>
             </div>
 
             {/* AI Agents Status */}
             <AgentStatus agentProgress={agentProgress} />
+
+            {/* Advanced Analytics */}
+            {user && (
+              <div className="mt-12">
+                <h3 className="text-3xl font-bold text-white mb-8 text-center">
+                  Advanced Analytics & Insights
+                </h3>
+                <AdvancedAnalytics />
+              </div>
+            )}
 
             {/* Main Translation Interface */}
             <div className="grid lg:grid-cols-2 gap-8">
@@ -589,13 +622,16 @@ const Index = () => {
             />
           </TabsContent>
 
-          {/* Settings Tab */}
+          {/* Enhanced Settings Tab with Billing History */}
           <TabsContent value="settings">
             {user ? (
-              <SettingsPanel 
-                currentPlan={currentPlan}
-                onUpgrade={() => setActiveTab('pricing')}
-              />
+              <div className="space-y-8">
+                <SettingsPanel 
+                  currentPlan={currentPlan}
+                  onUpgrade={() => setActiveTab('pricing')}
+                />
+                <BillingHistory userId={user.id} />
+              </div>
             ) : (
               <div className="text-center py-12">
                 <p className="text-blue-200 mb-4">Please sign in to access settings</p>
