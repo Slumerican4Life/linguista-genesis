@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users, Search, Gift, Crown, Shield, Phone, Mail, Calendar } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +23,7 @@ export const EnhancedUserManagement = () => {
   const [searchType, setSearchType] = useState<'email' | 'phone' | 'name'>('email');
   const queryClient = useQueryClient();
 
-  // Fetch all users with enhanced search functionality
+  // Fetch all users - show all by default, filter only when searching
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users', searchTerm, searchType],
     queryFn: async () => {
@@ -31,7 +32,8 @@ export const EnhancedUserManagement = () => {
         .select('*, subscriptions(*)')
         .order('created_at', { ascending: false });
 
-      if (searchTerm) {
+      // Only apply search filter if there's a search term
+      if (searchTerm.trim()) {
         switch (searchType) {
           case 'email':
             query = query.ilike('email', `%${searchTerm}%`);
@@ -98,9 +100,9 @@ export const EnhancedUserManagement = () => {
     <div className="space-y-6">
       <Card className="border border-purple-500/30 bg-black/60 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-purple-100">Enhanced User Management</CardTitle>
+          <CardTitle className="text-purple-100">User Management & Subscription Gifting</CardTitle>
           <CardDescription className="text-purple-200">
-            Search users by email, name, or phone number. Gift subscriptions and manage user roles.
+            All users are shown below. Use search to filter or scroll to find users to gift subscriptions to.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -133,7 +135,7 @@ export const EnhancedUserManagement = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-purple-400" />
               <Input
-                placeholder={`Search by ${searchType}...`}
+                placeholder={`Search by ${searchType} (optional)...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-purple-900/20 border-purple-500/30 text-white placeholder:text-purple-300"
@@ -148,22 +150,20 @@ export const EnhancedUserManagement = () => {
             </Button>
           </div>
 
-          {searchTerm && (
-            <div className="text-sm text-purple-300">
-              {usersLoading ? 'Searching...' : `Found ${users?.length || 0} users`}
-            </div>
-          )}
+          <div className="text-sm text-purple-300">
+            {usersLoading ? 'Loading users...' : `Showing ${users?.length || 0} users ${searchTerm ? `matching "${searchTerm}"` : 'total'}`}
+          </div>
 
           {usersLoading ? (
             <div className="text-center py-8 text-purple-200">Loading users...</div>
           ) : (
-            <div className="rounded-lg border border-purple-500/30 overflow-hidden">
+            <ScrollArea className="h-96 rounded-lg border border-purple-500/30">
               <Table>
-                <TableHeader className="bg-purple-900/40">
+                <TableHeader className="bg-purple-900/40 sticky top-0">
                   <TableRow className="border-purple-500/30">
                     <TableHead className="text-purple-100">User Details</TableHead>
                     <TableHead className="text-purple-100">Role</TableHead>
-                    <TableHead className="text-purple-100">Plan</TableHead>
+                    <TableHead className="text-purple-100">Current Plan</TableHead>
                     <TableHead className="text-purple-100">Joined</TableHead>
                     <TableHead className="text-purple-100">Actions</TableHead>
                   </TableRow>
@@ -235,12 +235,12 @@ export const EnhancedUserManagement = () => {
                 </TableBody>
               </Table>
 
-              {users?.length === 0 && searchTerm && (
+              {users?.length === 0 && (
                 <div className="text-center py-8 text-purple-200">
-                  No users found matching "{searchTerm}"
+                  {searchTerm ? `No users found matching "${searchTerm}"` : 'No users found in the system'}
                 </div>
               )}
-            </div>
+            </ScrollArea>
           )}
         </CardContent>
       </Card>
