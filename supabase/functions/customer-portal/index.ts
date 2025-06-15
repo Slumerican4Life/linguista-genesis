@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -26,17 +27,17 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    const { data: customerData, error: customerError } = await supabaseClient
-      .from('subscribers')
+    const { data: profileData, error: profileError } = await supabaseClient
+      .from('profiles')
       .select('stripe_customer_id')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
-    if (customerError && customerError.code !== 'PGRST116') { // PGRST116 = no rows found
-        throw customerError;
+    if (profileError) {
+        throw profileError;
     }
 
-    const customerId = customerData?.stripe_customer_id;
+    const customerId = profileData?.stripe_customer_id;
     if (!customerId) {
         throw new Error("Stripe customer not found for this user. Please subscribe to a plan first.");
     }

@@ -30,26 +30,29 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    const { data: customerData } = await supabaseClient
-      .from('subscribers')
+    const { data: profileData } = await supabaseClient
+      .from('profiles')
       .select('stripe_customer_id')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
-    let customerId = customerData?.stripe_customer_id;
+    let customerId = profileData?.stripe_customer_id;
 
     if (!customerId) {
         const customer = await stripe.customers.create({
-            email: user.email,
+            email: user.email!,
             metadata: { user_id: user.id },
         });
         customerId = customer.id;
         
-        await supabaseClient.from('subscribers').upsert({
-            user_id: user.id,
-            email: user.email,
-            stripe_customer_id: customerId,
-        }, { onConflict: 'user_id' });
+        const { error: updateError } = await supabaseClient
+          .from('profiles')
+          .update({ stripe_customer_id: customerId })
+          .eq('id', user.id);
+
+        if (updateError) {
+          console.error("Failed to update profile with Stripe customer ID:", updateError);
+        }
     }
 
     const session = await stripe.checkout.sessions.create({
