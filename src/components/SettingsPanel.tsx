@@ -5,13 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { User, Upload, Save, Shield, Globe, CreditCard, Bell, Mail } from 'lucide-react';
+import { User, Upload, Save, Shield, CreditCard, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PhoneVerification } from './verification/PhoneVerification';
 import { EmailVerification } from './verification/EmailVerification';
-import { WebsiteTranslator } from './translation/WebsiteTranslator';
 
 interface SettingsPanelProps {
   currentPlan: string;
@@ -203,7 +202,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
   return (
     <div className="space-y-6">
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-black border border-blue-600">
+        <TabsList className="grid w-full grid-cols-3 bg-black border border-blue-600">
           <TabsTrigger value="profile" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
             <User className="w-4 h-4 mr-2" />
             Profile
@@ -211,10 +210,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
           <TabsTrigger value="security" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
             <Shield className="w-4 h-4 mr-2" />
             Security
-          </TabsTrigger>
-          <TabsTrigger value="translation" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
-            <Globe className="w-4 h-4 mr-2" />
-            Translation
           </TabsTrigger>
           <TabsTrigger value="billing" className="data-[state=active]:bg-purple-700 data-[state=active]:text-white text-blue-200">
             <CreditCard className="w-4 h-4 mr-2" />
@@ -357,10 +352,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
             isVerified={phoneVerified}
             onVerificationComplete={handleVerificationComplete}
           />
-        </TabsContent>
-
-        <TabsContent value="translation" className="space-y-6">
-          <WebsiteTranslator />
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-6">
