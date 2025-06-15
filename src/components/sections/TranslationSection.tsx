@@ -162,7 +162,9 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
       {/* Translation Results */}
       {Object.keys(translations).length > 0 && (
         <TranslationPreview
+          originalText={inputText}
           translations={translations}
+          isLoading={isTranslating}
         />
       )}
     </div>
