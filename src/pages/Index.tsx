@@ -249,7 +249,7 @@ const Index = () => {
       <header className="relative z-10 border-b border-blue-600 bg-black">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl flex items-center justify-center border-2 border-white/20 shadow-lg">
                 <img 
                   src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
@@ -266,6 +266,16 @@ const Index = () => {
                   Linguista
                 </h1>
                 <p className="text-sm text-blue-300 font-semibold">by Neuronix ~ Language Rewired</p>
+              </div>
+              {/* Add Neuronix Brain Visual */}
+              <div className="hidden md:flex items-center space-x-3 ml-6 p-3 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg border border-purple-500/30">
+                <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                  <span className="text-lg">🧠</span>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-yellow-200">Neural Network</p>
+                  <p className="text-xs text-purple-300">AI Translation Core</p>
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -353,27 +363,45 @@ const Index = () => {
 
           {/* Translation Tab */}
           <TabsContent value="translate" className="space-y-8">
-            {/* Hero Section with 3D Earth */}
-            <div className="text-center space-y-6 mb-12 relative">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-600/30 to-purple-700/30 animate-spin-slow border-2 border-blue-500" 
-                       style={{ animationDuration: '20s' }}>
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-700/50 to-purple-700/50 flex items-center justify-center">
-                      <Globe className="w-16 h-16 text-blue-300 animate-pulse" />
+            {/* Enhanced Hero Section with 3D Earth and Brain Technology */}
+            <div className="text-center space-y-6 mb-12 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-blue-600/5 to-indigo-600/5 animate-pulse"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-center mb-6">
+                  <div className="relative">
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-600/30 to-purple-700/30 animate-spin-slow border-2 border-blue-500" 
+                         style={{ animationDuration: '20s' }}>
+                      <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-700/50 to-purple-700/50 flex items-center justify-center">
+                        <Globe className="w-16 h-16 text-blue-300 animate-pulse" />
+                      </div>
+                    </div>
+                    {/* Brain Technology Indicator */}
+                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center border-2 border-white/20 animate-bounce">
+                      <span className="text-2xl">🧠</span>
                     </div>
                   </div>
                 </div>
-                <h2 className="text-6xl font-black text-white mb-6 relative z-10 pt-8">
-                  Transform Your Content for
-                  <span className="text-purple-500 block mt-2">
-                    Global Audiences
+                <h2 className="text-6xl font-black text-white mb-6 relative z-10">
+                  Transform Your Content with
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 block mt-2">
+                    Neuronix Brain Power
                   </span>
                 </h2>
               </div>
-              <p className="text-xl text-blue-200 max-w-3xl mx-auto leading-relaxed font-medium">
-                Our AI agent team delivers contextual, culturally-rich translations that capture tone, humor, and local nuances—not just literal word conversion.
+              <p className="text-xl text-blue-200 max-w-3xl mx-auto leading-relaxed font-medium relative z-10">
+                Our AI agent team powered by Neuronix neural networks delivers contextual, culturally-rich translations that capture tone, humor, and local nuances—not just literal word conversion.
               </p>
+              <div className="flex justify-center space-x-6 mt-8 relative z-10">
+                <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 text-sm">
+                  🧠 Neural Translation
+                </Badge>
+                <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 text-sm">
+                  🌍 Cultural Context
+                </Badge>
+                <Badge className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 text-sm">
+                  ⚡ Real-time Processing
+                </Badge>
+              </div>
             </div>
 
             {/* AI Agents Status */}
