@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Check, Crown, Zap, Rocket, Building, Star } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PricingPlansProps {
   onSelectPlan: (planId: string) => void;
@@ -234,7 +235,16 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ onSelectPlan, curren
                 </div>
 
                 <Button
-                  onClick={() => onSelectPlan(plan.id)}
+                  onClick={() => {
+                    const priceId = isAnnual ? plan.stripeAnnualId : plan.stripeMonthlyId;
+                    if (priceId) {
+                      onSelectPlan(priceId);
+                    } else if (plan.id === 'free') {
+                      toast.info("The Free Tier is available by default for all new users.");
+                    } else {
+                      toast.error("This plan isn't available for purchase right now.");
+                    }
+                  }}
                   disabled={isCurrentPlan}
                   className={`w-full h-12 font-bold transition-all duration-300 ${
                     plan.popular
