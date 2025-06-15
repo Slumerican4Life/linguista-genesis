@@ -24,32 +24,48 @@ export const WebsiteTranslator: React.FC = () => {
   const [currentCrawlingProject, setCurrentCrawlingProject] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
+  // Check if user is authenticated
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
   // Fetch crawling status for active project
   const { data: crawlingStatus } = useQuery({
     queryKey: ['crawling-status', currentCrawlingProject],
     queryFn: async () => {
-      if (!currentCrawlingProject) return null;
+      if (!currentCrawlingProject || !user) return null;
       
       const { data, error } = await supabase
         .from('website_crawl_status')
         .select('*')
         .eq('id', currentCrawlingProject)
+        .eq('user_id', user.id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching crawl status:', error);
+        return null;
+      }
       return data;
     },
-    enabled: !!currentCrawlingProject,
+    enabled: !!currentCrawlingProject && !!user,
     refetchInterval: 2000,
   });
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['translation-projects'],
     queryFn: async () => {
+      if (!user) return [];
+      
       try {
         const { data, error } = await supabase
           .from('website_crawl_status')
           .select('*')
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
         
         if (error) throw error;
@@ -59,11 +75,16 @@ export const WebsiteTranslator: React.FC = () => {
         return [];
       }
     },
+    enabled: !!user,
   });
 
   // Create new translation project
   const createProject = useMutation({
     mutationFn: async ({ name, url, languages }: { name: string; url: string; languages: string[] }) => {
+      if (!user) {
+        throw new Error('User must be authenticated to create projects');
+      }
+
       try {
         const defaultSteps: ProgressStep[] = [
           { id: 'init', label: 'Deploying AI Crawlers', status: 'pending', description: 'Neuronix agents launching into cyberspace' },
@@ -85,12 +106,16 @@ export const WebsiteTranslator: React.FC = () => {
           .insert({
             url,
             status: 'pending',
+            user_id: user.id,
             progress: progressData as any
           })
           .select()
           .single();
 
-        if (crawlError) throw crawlError;
+        if (crawlError) {
+          console.error('Crawl insert error:', crawlError);
+          throw crawlError;
+        }
 
         setCurrentCrawlingProject(crawlData.id);
 
@@ -101,7 +126,7 @@ export const WebsiteTranslator: React.FC = () => {
         return crawlData;
       } catch (error) {
         console.error('Failed to create project:', error);
-        toast.error('Failed to deploy neural crawlers');
+        toast.error(`Failed to deploy neural crawlers: ${error.message}`);
         throw error;
       }
     },
@@ -117,6 +142,8 @@ export const WebsiteTranslator: React.FC = () => {
     projectName: string, 
     targetLanguages: string[]
   ) => {
+    if (!user) return;
+
     const stepOrder = ['init', 'crawl', 'extract', 'translate', 'rebuild', 'deploy'];
     
     for (let i = 0; i < stepOrder.length; i++) {
@@ -146,7 +173,8 @@ export const WebsiteTranslator: React.FC = () => {
             status: 'crawling',
             progress: progressData as any
           })
-          .eq('id', projectId);
+          .eq('id', projectId)
+          .eq('user_id', user.id);
 
         // Wait a bit then mark as completed
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -167,13 +195,18 @@ export const WebsiteTranslator: React.FC = () => {
           progress: finalProgressData as any,
           ...(i === stepOrder.length - 1 && { completed_at: new Date().toISOString() })
         })
-        .eq('id', projectId);
+        .eq('id', projectId)
+        .eq('user_id', user.id);
 
       if (error) console.error('Error updating crawl status:', error);
     }
   };
 
   const handleCreateProject = (name: string, url: string, languages: string[]) => {
+    if (!user) {
+      toast.error('Please log in to create translation projects');
+      return;
+    }
     createProject.mutate({ name, url, languages });
   };
 
@@ -192,6 +225,33 @@ export const WebsiteTranslator: React.FC = () => {
   const handleViewProject = (projectId: string) => {
     setCurrentCrawlingProject(projectId);
   };
+
+  // Show login message if not authenticated
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <TranslationInstructions />
+        
+        <Card className="border-purple-500/30 bg-gradient-to-br from-black/80 to-purple-900/20 backdrop-blur-lg shadow-2xl">
+          <CardContent className="p-8 text-center space-y-6">
+            <div className="space-y-4">
+              <Globe className="w-16 h-16 text-purple-400 mx-auto" />
+              <h3 className="text-2xl font-bold text-purple-100">Authentication Required</h3>
+              <p className="text-purple-200">Please log in to access the Neural Translation Engine and create website translation projects.</p>
+            </div>
+            
+            <Button
+              onClick={() => window.location.hash = '#auth'}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold px-8 py-4 text-lg"
+            >
+              <Globe className="w-5 h-5 mr-2" />
+              Log In to Continue
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Show enhanced crawling status if there's an active project
   if (currentCrawlingProject && crawlingStatus) {

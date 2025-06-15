@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BarChart3, TrendingUp, Calendar, Zap, AlertTriangle } from 'lucide-react';
+import { AIInsights } from './dashboard/AIInsights';
 
 interface UsageData {
   wordsUsed: number;
@@ -59,6 +59,9 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ usage, onUpgrade
 
   return (
     <div className="space-y-6">
+      {/* AI Insights Section */}
+      <AIInsights />
+
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold flex items-center space-x-2 text-white">
           <BarChart3 className="w-6 h-6 text-blue-600" />
