@@ -6,11 +6,11 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden group",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden group font-script font-semibold tracking-wide",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "enhanced-button text-white hover:text-white",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
@@ -50,11 +50,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity duration-300 lava-goo pointer-events-none">
-          <div className="absolute w-8 h-8 bg-white/20 rounded-full animate-lava-1"></div>
-          <div className="absolute w-6 h-6 bg-white/15 rounded-full animate-lava-2"></div>
-          <div className="absolute w-10 h-10 bg-white/10 rounded-full animate-lava-3"></div>
+          <div className="absolute w-8 h-8 bg-gradient-to-br from-magic-gold-400 via-ai-purple-500 to-ai-blue-500 rounded-full animate-lava-1"></div>
+          <div className="absolute w-6 h-6 bg-gradient-to-tr from-ai-blue-400 via-magic-gold-500 to-ai-purple-400 rounded-full animate-lava-2"></div>
+          <div className="absolute w-10 h-10 bg-gradient-to-bl from-ai-purple-600 via-ai-blue-400 to-magic-gold-400 rounded-full animate-lava-3"></div>
         </div>
-        <div className="relative z-10">
+        <div className="relative z-10 flex items-center">
           {children}
         </div>
       </Comp>
