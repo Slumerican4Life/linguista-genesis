@@ -9,7 +9,7 @@ interface NavigationTabsProps {
 
 export const NavigationTabs: React.FC<NavigationTabsProps> = ({ isAdmin }) => {
   return (
-    <TabsList className="grid w-full grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 bg-gradient-to-r from-purple-900/60 to-blue-900/60 border-2 border-purple-500/40 backdrop-blur-xl p-2 rounded-2xl shadow-2xl">
+    <TabsList className="grid w-full grid-cols-5 lg:grid-cols-6 bg-gradient-to-r from-purple-900/60 to-blue-900/60 border-2 border-purple-500/40 backdrop-blur-xl p-2 rounded-2xl shadow-2xl">
       <TabsTrigger 
         value="translate" 
         className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white text-purple-200 font-bold text-sm lg:text-base transition-all duration-300"
