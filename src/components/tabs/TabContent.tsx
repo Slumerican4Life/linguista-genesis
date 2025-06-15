@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { TranslationSection } from '@/components/sections/TranslationSection';
@@ -53,14 +52,14 @@ export const TabContent: React.FC<TabContentProps> = ({
   onOpenAuthModal,
   setActiveTab
 }) => {
-  // Handle cancel subscription
-  const handleCancelSubscription = async () => {
+  // Handle manage subscription
+  const handleManageSubscription = async () => {
     if (!user) {
       toast.error("Please log in to manage your subscription.");
       return;
     }
 
-    const toastId = toast.loading("Processing cancellation...");
+    const toastId = toast.loading("Processing...");
 
     try {
       const { data, error } = await supabase.functions.invoke('customer-portal', {
@@ -93,6 +92,11 @@ export const TabContent: React.FC<TabContentProps> = ({
     }
   };
 
+  const handleUpgrade = () => {
+    setActiveTab('pricing');
+    toast.info("Please select a new plan to upgrade.");
+  };
+
   return (
     <>
       <TabsContent value="translate" className="mt-8">
@@ -122,7 +126,7 @@ export const TabContent: React.FC<TabContentProps> = ({
       </TabsContent>
 
       <TabsContent value="dashboard" className="mt-8">
-        <UsageDashboard />
+        <UsageDashboard usage={usageData} onUpgrade={handleUpgrade} />
       </TabsContent>
 
       <TabsContent value="auth" className="mt-8">
@@ -135,7 +139,21 @@ export const TabContent: React.FC<TabContentProps> = ({
       </TabsContent>
 
       <TabsContent value="settings" className="mt-8">
-        <SettingsPanel />
+        <SettingsPanel 
+          user={user}
+          userProfile={userProfile}
+          currentPlan={currentPlan}
+          onUpgrade={handleUpgrade}
+          onManageSubscription={handleManageSubscription}
+          onSignOut={handleSignOut}
+          onOpenPreferences={() => toast.info("Preferences are available inline.")}
+          onOpenSecurity={() => toast.info("Security settings are available inline.")}
+          onOpenDeleteAccount={() => toast.error("Account deletion is not available via the UI. Please contact support.")}
+          onUpdateProfile={async () => toast.info("Profile update not implemented yet.")}
+          onUpdatePassword={async () => toast.info("Password update not implemented yet.")}
+          isUpdatingProfile={false}
+          isUpdatingPassword={false}
+        />
       </TabsContent>
 
       {isAdmin && (

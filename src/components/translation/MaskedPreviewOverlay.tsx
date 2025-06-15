@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { X, Globe, Languages, Eye, Zap, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,8 @@ interface MaskedPreviewOverlayProps {
   languages: string[];
   defaultLanguage?: string;
   onClose: () => void;
+  onConfirm?: () => void;
+  isConfirming?: boolean;
 }
 
 // Mock translated content for demonstration
@@ -61,6 +62,8 @@ export const MaskedPreviewOverlay: React.FC<MaskedPreviewOverlayProps> = ({
   languages,
   defaultLanguage,
   onClose,
+  onConfirm,
+  isConfirming,
 }) => {
   const [selectedLang, setSelectedLang] = useState<string>(
     defaultLanguage || (languages.length > 0 ? languages[0] : "spanish")
@@ -102,7 +105,7 @@ export const MaskedPreviewOverlay: React.FC<MaskedPreviewOverlayProps> = ({
             <Globe className="w-6 h-6 animate-pulse" />
             <div>
               <h2 className="font-bold text-xl">Live Translation Preview</h2>
-              <p className="text-sm text-purple-200">Real-time website translation demonstration</p>
+              <p className="text-sm text-purple-200">{onConfirm ? "Confirm your project details below" : "Real-time website translation demonstration"}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -234,17 +237,28 @@ export const MaskedPreviewOverlay: React.FC<MaskedPreviewOverlayProps> = ({
           <div className="flex items-center justify-between">
             <div className="text-sm text-purple-300">
               <Eye className="w-4 h-4 inline mr-1" />
-              Live demonstration of AI-powered website translation
+              {onConfirm ? "Preview of your website translation" : "Live demonstration of AI-powered website translation"}
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-purple-400">
                 Translation Engine: Neuronix AI v2.0
               </span>
+              {onConfirm && (
+                <Button
+                  onClick={onConfirm}
+                  disabled={isConfirming}
+                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  {isConfirming ? "Deploying..." : "Confirm & Create Project"}
+                </Button>
+              )}
               <Button 
                 onClick={onClose}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                variant={onConfirm ? "outline" : "default"}
+                className={!onConfirm ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" : ""}
               >
-                Close Preview
+                {onConfirm ? "Cancel" : "Close Preview"}
               </Button>
             </div>
           </div>

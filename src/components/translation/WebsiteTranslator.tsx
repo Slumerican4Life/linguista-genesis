@@ -18,10 +18,18 @@ interface ProgressStep {
   description: string;
 }
 
+interface ProgressData {
+  projectName?: string;
+  targetLanguages?: string[];
+  steps?: ProgressStep[];
+  error?: string;
+}
+
 export const WebsiteTranslator: React.FC = () => {
   const [currentCrawlingProject, setCurrentCrawlingProject] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [previewProject, setPreviewProject] = useState<any | null>(null);
+  const [projectToPreview, setProjectToPreview] = useState<{name: string, url: string, languages: string[]} | null>(null);
   const queryClient = useQueryClient();
 
   // Check if user is authenticated
@@ -191,7 +199,14 @@ export const WebsiteTranslator: React.FC = () => {
       toast.error('Please log in to create translation projects');
       return;
     }
-    createProject.mutate({ name, url, languages });
+    setProjectToPreview({ name, url, languages });
+  };
+  
+  const confirmAndCreateProject = () => {
+    if (projectToPreview) {
+      createProject.mutate(projectToPreview);
+      setProjectToPreview(null);
+    }
   };
 
   const handleViewResult = () => {
@@ -268,8 +283,8 @@ export const WebsiteTranslator: React.FC = () => {
         {showPreview && previewProject && (
           <MaskedPreviewOverlay
             url={previewProject.url}
-            languages={previewProject.progress?.targetLanguages || ["spanish", "french", "german", "japanese"]}
-            defaultLanguage={previewProject.progress?.targetLanguages?.[0] || "spanish"}
+            languages={(previewProject.progress as ProgressData)?.targetLanguages || ["spanish", "french", "german", "japanese"]}
+            defaultLanguage={(previewProject.progress as ProgressData)?.targetLanguages?.[0] || "spanish"}
             onClose={() => setShowPreview(false)}
           />
         )}
@@ -292,8 +307,8 @@ export const WebsiteTranslator: React.FC = () => {
         {crawlingStatus.status === 'completed' && showPreview && (
           <MaskedPreviewOverlay
             url={crawlingStatus.url}
-            languages={crawlingStatus.progress?.targetLanguages || []}
-            defaultLanguage={(crawlingStatus.progress?.targetLanguages || [])[0]}
+            languages={(crawlingStatus.progress as ProgressData)?.targetLanguages || []}
+            defaultLanguage={((crawlingStatus.progress as ProgressData)?.targetLanguages || [])[0]}
             onClose={() => setShowPreview(false)}
           />
         )}
@@ -303,8 +318,6 @@ export const WebsiteTranslator: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <LiveDemoSection onStartDemo={handleStartDemo} isLoggedIn={true} />
-      
       <WebsiteTranslatorMain
         projects={projects || []}
         isLoading={isLoading}
@@ -314,13 +327,15 @@ export const WebsiteTranslator: React.FC = () => {
         onUnmaskProject={handleUnmaskProject}
       />
 
-      {/* Live Preview Overlay */}
-      {showPreview && previewProject && (
+      {/* Preview before creating project */}
+      {projectToPreview && (
         <MaskedPreviewOverlay
-          url={previewProject.url}
-          languages={previewProject.progress?.targetLanguages || ["spanish", "french", "german", "japanese"]}
-          defaultLanguage={previewProject.progress?.targetLanguages?.[0] || "spanish"}
-          onClose={() => setShowPreview(false)}
+          url={projectToPreview.url}
+          languages={projectToPreview.languages}
+          defaultLanguage={projectToPreview.languages[0]}
+          onClose={() => setProjectToPreview(null)}
+          onConfirm={confirmAndCreateProject}
+          isConfirming={createProject.isPending}
         />
       )}
     </div>
