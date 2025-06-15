@@ -108,14 +108,12 @@ export const TabContent: React.FC<TabContentProps> = ({
         <PricingPlans
           currentPlan={currentPlan}
           onSelectPlan={onSelectPlan}
-          onCancelSubscription={handleCancelSubscription}
           user={user}
         />
       </TabsContent>
 
       <TabsContent value="dashboard" className="mt-8">
         <UsageDashboard 
-          usageData={usageData}
           currentPlan={currentPlan}
           user={user}
         />
@@ -126,13 +124,11 @@ export const TabContent: React.FC<TabContentProps> = ({
           user={user}
           userProfile={userProfile}
           onOpenAuthModal={onOpenAuthModal}
-          setActiveTab={setActiveTab}
         />
       </TabsContent>
 
       <TabsContent value="settings" className="mt-8">
         <SettingsPanel 
-          user={user}
           userProfile={userProfile}
           onCancelSubscription={handleCancelSubscription}
         />
