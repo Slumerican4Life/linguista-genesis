@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -32,6 +31,22 @@ export const WebsiteTranslator: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       return user;
     },
+  });
+
+  // Fetch user AND their profile/subscription
+  const { data: userProfile } = useQuery({
+    queryKey: ['current-profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*, subscriptions(*)')
+        .eq('id', user.id)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user,
   });
 
   // Fetch crawling status for active project
@@ -79,13 +94,33 @@ export const WebsiteTranslator: React.FC = () => {
     enabled: !!user,
   });
 
-  // Create new translation project
+  // Subscription plan limits
+  const ownerUnlimited = userProfile?.role === 'owner';
+  const subscription = userProfile?.subscriptions?.[0];
+  const currentPlan = subscription?.tier || 'free';
+  const planLimits: Record<string, number> = {
+    free: 1,
+    professional: 3,
+    premium: 10,
+    business: 50
+  };
+  const sitesAllowed = ownerUnlimited ? Infinity : (planLimits[currentPlan] || 1);
+
+  // Create new translation project with enforcement
   const createProject = useMutation({
     mutationFn: async ({ name, url, languages }: { name: string; url: string; languages: string[] }) => {
       if (!user) {
         throw new Error('User must be authenticated to create projects');
       }
-
+      // ENFORCE LIMIT for non-owners
+      const { data: existing, error: countError } = await supabase
+        .from('website_crawl_status')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      const projectCount = existing?.length || 0;
+      if (!ownerUnlimited && projectCount >= sitesAllowed) {
+        throw new Error(`You have reached your plan's limit for masked websites. Please upgrade your subscription for more.`);
+      }
       try {
         const defaultSteps: ProgressStep[] = [
           { id: 'init', label: 'Deploying AI Crawlers', status: 'pending', description: 'Neuronix agents launching into cyberspace' },
@@ -225,6 +260,30 @@ export const WebsiteTranslator: React.FC = () => {
 
   const handleViewProject = (projectId: string) => {
     setCurrentCrawlingProject(projectId);
+  };
+
+  const handleUnmaskProject = async (projectId: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('website_crawl_status')
+        .delete()
+        .eq('id', projectId)
+        .eq('user_id', user.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['translation-projects'] });
+      queryClient.invalidateQueries({ queryKey: ['crawling-status'] });
+      if (projectId === currentCrawlingProject) {
+        setCurrentCrawlingProject(null);
+      }
+      // Use toast for confirmation
+      // (On this codebase, "sonner" can be used directly)
+      // @ts-ignore
+      if (window.toast) window.toast.success('Website unmasked (removed) successfully!');
+    } catch (e: any) {
+      // @ts-ignore
+      if (window.toast) window.toast.error('Failed to unmask website: ' + e.message);
+    }
   };
 
   // Show login message if not authenticated
@@ -380,7 +439,9 @@ export const WebsiteTranslator: React.FC = () => {
 
             <TabsContent value="create" className="space-y-6">
               <TranslationProjectForm
-                onCreateProject={handleCreateProject}
+                onCreateProject={(name, url, languages) =>
+                  createProject.mutate({ name, url, languages })
+                }
                 isCreating={createProject.isPending}
               />
             </TabsContent>
@@ -390,6 +451,8 @@ export const WebsiteTranslator: React.FC = () => {
                 projects={projects || []}
                 isLoading={isLoading}
                 onViewProject={handleViewProject}
+                onUnmaskProject={handleUnmaskProject}
+                canUnmask={true}
               />
             </TabsContent>
           </Tabs>

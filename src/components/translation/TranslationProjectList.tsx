@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Globe, Link2, Eye, Download } from 'lucide-react';
+import { Globe, Link2, Eye, Download, Trash2 } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -17,12 +17,16 @@ interface TranslationProjectListProps {
   projects: Project[];
   isLoading: boolean;
   onViewProject: (projectId: string) => void;
+  onUnmaskProject: (projectId: string) => void;
+  canUnmask: boolean;
 }
 
 export const TranslationProjectList: React.FC<TranslationProjectListProps> = ({
   projects,
   isLoading,
-  onViewProject
+  onViewProject,
+  onUnmaskProject,
+  canUnmask
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -102,6 +106,21 @@ export const TranslationProjectList: React.FC<TranslationProjectListProps> = ({
                     >
                       <Download className="w-4 h-4 mr-1" />
                       View Site
+                    </Button>
+                  )}
+                  {canUnmask && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-red-500/30 text-red-400 hover:bg-red-900/20"
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to unmask (remove) this website from translation? This cannot be undone.")) {
+                          onUnmaskProject(project.id);
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Unmask
                     </Button>
                   )}
                 </div>
