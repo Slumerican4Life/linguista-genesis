@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -59,6 +58,43 @@ serve(async (req) => {
       )
     }
 
+    // --- New: Automatically detect source language ---
+    const detectLanguagePrompt = `What language is the following text? Respond with only the two-letter ISO 639-1 code (e.g., "en", "es", "fr"). If you are unsure, respond with "en".\n\nText: "${text.substring(0, 500)}"`
+
+    let sourceLanguageCode = 'en'; // Default to English
+
+    try {
+      const langDetectionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: detectLanguagePrompt }],
+          max_tokens: 7,
+          temperature: 0,
+        }),
+      });
+
+      if (langDetectionResponse.ok) {
+        const langDetectionData = await langDetectionResponse.json();
+        const detectedCode = langDetectionData.choices?.[0]?.message?.content.trim().toLowerCase() || 'en';
+        // Basic validation for the language code
+        if (/^[a-z]{2,3}(-[a-z]{2,4})?$/.test(detectedCode)) {
+          sourceLanguageCode = detectedCode.split('-')[0];
+        } else {
+          console.warn(`Invalid language code detected: "${detectedCode}". Defaulting to 'en'.`);
+        }
+      } else {
+        console.warn('Language detection failed, defaulting to English.');
+      }
+    } catch(e) {
+      console.error('Error during language detection:', e);
+    }
+    // --- End of new section ---
+
     const wordCount = text.split(' ').length
     const translations: Record<string, string> = {}
 
@@ -103,8 +139,8 @@ serve(async (req) => {
       }
     };
 
-    // Enhanced translation with multiple API fallbacks
-    const translateWithAPIs = async (text: string, targetLang: string): Promise<string> => {
+    // Enhanced translation with multiple API fallbacks and source language
+    const translateWithAPIs = async (text: string, targetLang: string, sourceLang: string): Promise<string> => {
       const translationServices = [
         {
           name: 'DeepL',
@@ -137,7 +173,7 @@ serve(async (req) => {
               body: JSON.stringify({
                 q: text,
                 target: targetLang,
-                source: 'en'
+                source: sourceLang, // Use detected source language
               })
             });
             if (response.ok) {
@@ -173,9 +209,10 @@ serve(async (req) => {
       }
 
       const targetLanguage = languageNames[langCode] || langCode;
+      const sourceLanguageName = languageNames[sourceLanguageCode] || sourceLanguageCode;
 
-      // Try API translation first
-      let apiTranslation = await translateWithAPIs(text, langCode);
+      // Try API translation first, now with source language
+      let apiTranslation = await translateWithAPIs(text, langCode, sourceLanguageCode);
 
       // Get dictionary context for key words
       const words = text.split(/\s+/).filter(word => word.length > 3);
@@ -199,7 +236,7 @@ Domain: ${context.domain || 'general'}
 Cultural Context: ${context.cultural_context || 'standard'}
 
 TRANSLATION TASK:
-Translate the following text to ${targetLanguage} with exceptional quality:
+Translate the following text from ${sourceLanguageName} to ${targetLanguage} with exceptional quality:
 
 "${text}"
 
@@ -241,7 +278,7 @@ Provide ONLY the final translation, no explanations.`;
     // Store enhanced translation request in database
     await supabase.from('translation_requests').insert({
       user_id: user.id,
-      source_language: 'en',
+      source_language: sourceLanguageCode, // Use detected source language
       target_languages: targetLanguages,
       original_text: text,
       translated_text: translations,
