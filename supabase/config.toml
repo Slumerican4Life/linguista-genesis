@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.ai-translate]
 verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
