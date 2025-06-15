@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +16,14 @@ import { AdvancedAnalytics } from '@/components/analytics/AdvancedAnalytics';
 import { FeedbackPanel } from '@/components/FeedbackPanel';
 import { User } from '@supabase/supabase-js';
 import { Globe, BarChart3, CreditCard, Settings, Zap, Download, FileText, Shield, Users, Bot, Eye, Search, Target, Upload, Database, Cpu, AlertTriangle, CheckCircle, Clock, TrendingUp, DollarSign, Calendar, Mail, Phone, Lock, Key, Archive, Trash2, Edit, Copy, Share2, Filter, RefreshCw, HelpCircle, Star, Heart, Bookmark } from 'lucide-react';
+
+// Modal Imports
+import { UserPreferencesModal } from "@/components/preferences/UserPreferencesModal";
+import { SecuritySettingsModal } from "@/components/security/SecuritySettingsModal";
+import { AnalyticsModal } from "@/components/analytics/AnalyticsModal";
+import { ExportDataModal } from "@/components/analytics/ExportDataModal";
+import { PerformanceModal } from "@/components/analytics/PerformanceModal";
+import { HistoryModal } from "@/components/analytics/HistoryModal";
 
 interface TabContentProps {
   // Translation props
@@ -44,6 +51,36 @@ interface TabContentProps {
   setActiveTab: (tab: string) => void;
 }
 
+// Placeholder modals moved from SettingsPanel
+const BillingModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) =>
+  open ? (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+      <div className="bg-white text-black rounded-lg p-6 min-w-[320px]">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-bold text-lg">Billing & Subscription</h2>
+          <button onClick={onClose} className="ml-4 px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">Close</button>
+        </div>
+        <p className="mb-2">Current Plan: (demo) Premium</p>
+        <p className="mb-2">Renewal: (demo) 2025-07-01</p>
+        <p className="mb-2">Payment Method: (demo) Visa ****1234</p>
+        <Button className="w-full bg-green-600 mt-3">Manage Billing</Button>
+      </div>
+    </div>
+  ) : null;
+
+const SimpleModal: React.FC<{ open: boolean; title: string; onClose: () => void; children: React.ReactNode }> = ({ open, title, onClose, children }) => 
+  open ? (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
+      <div className="bg-white text-black rounded-lg p-6 min-w-[340px] max-w-xl shadow-lg">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-bold text-lg">{title}</h2>
+          <button onClick={onClose} className="ml-4 px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">Close</button>
+        </div>
+        <div>{children}</div>
+      </div>
+    </div>
+  ) : null;
+
 export const TabContent: React.FC<TabContentProps> = ({
   inputText,
   setInputText,
@@ -64,6 +101,18 @@ export const TabContent: React.FC<TabContentProps> = ({
   onOpenAuthModal,
   setActiveTab
 }) => {
+  // Centralized modal state
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const [isSecurityOpen, setIsSecurityOpen] = useState(false);
+  const [isBillingOpen, setIsBillingOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isPerformanceOpen, setIsPerformanceOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isComparePlansOpen, setIsComparePlansOpen] = useState(false);
+  const [isUpgradeNowOpen, setIsUpgradeNowOpen] = useState(false);
+  const [isEnterpriseOpen, setIsEnterpriseOpen] = useState(false);
+  
   return (
     <>
       {/* Translation Tab */}
@@ -209,11 +258,11 @@ export const TabContent: React.FC<TabContentProps> = ({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700 mb-2">
+                  <Button onClick={() => setIsAnalyticsOpen(true)} className="w-full bg-purple-600 hover:bg-purple-700 mb-2">
                     <TrendingUp className="w-4 h-4 mr-2" />
                     View Reports
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  <Button onClick={() => setIsAnalyticsOpen(true)} variant="outline" className="w-full">
                     <Eye className="w-4 h-4 mr-2" />
                     Live Stats
                   </Button>
@@ -231,11 +280,11 @@ export const TabContent: React.FC<TabContentProps> = ({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 mb-2">
+                  <Button onClick={() => setIsExportOpen(true)} className="w-full bg-blue-600 hover:bg-blue-700 mb-2">
                     <FileText className="w-4 h-4 mr-2" />
                     Download CSV
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  <Button onClick={() => setIsExportOpen(true)} variant="outline" className="w-full">
                     <Archive className="w-4 h-4 mr-2" />
                     Export All
                   </Button>
@@ -253,11 +302,11 @@ export const TabContent: React.FC<TabContentProps> = ({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 mb-2">
+                  <Button onClick={() => setIsPerformanceOpen(true)} className="w-full bg-green-600 hover:bg-green-700 mb-2">
                     <Cpu className="w-4 h-4 mr-2" />
                     Optimize
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  <Button onClick={() => setIsPerformanceOpen(true)} variant="outline" className="w-full">
                     <AlertTriangle className="w-4 h-4 mr-2" />
                     Check Issues
                   </Button>
@@ -275,11 +324,11 @@ export const TabContent: React.FC<TabContentProps> = ({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full bg-yellow-600 hover:bg-yellow-700 mb-2">
+                  <Button onClick={() => setIsHistoryOpen(true)} className="w-full bg-yellow-600 hover:bg-yellow-700 mb-2">
                     <FileText className="w-4 h-4 mr-2" />
                     View All
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  <Button onClick={() => setIsHistoryOpen(true)} variant="outline" className="w-full">
                     <Filter className="w-4 h-4 mr-2" />
                     Filter Results
                   </Button>
@@ -359,11 +408,11 @@ export const TabContent: React.FC<TabContentProps> = ({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700 mb-2">
+              <Button onClick={() => setIsComparePlansOpen(true)} className="w-full bg-purple-600 hover:bg-purple-700 mb-2">
                 <Eye className="w-4 h-4 mr-2" />
                 View Details
               </Button>
-              <Button variant="outline" className="w-full">
+              <Button onClick={() => setIsComparePlansOpen(true)} variant="outline" className="w-full">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Compare Features
               </Button>
@@ -381,11 +430,11 @@ export const TabContent: React.FC<TabContentProps> = ({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-green-600 hover:bg-green-700 mb-2">
+              <Button onClick={() => setIsUpgradeNowOpen(true)} className="w-full bg-green-600 hover:bg-green-700 mb-2">
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Get Premium
               </Button>
-              <Button variant="outline" className="w-full">
+              <Button onClick={() => setActiveTab('pricing')} variant="outline" className="w-full">
                 <DollarSign className="w-4 h-4 mr-2" />
                 View Pricing
               </Button>
@@ -403,11 +452,11 @@ export const TabContent: React.FC<TabContentProps> = ({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 mb-2">
+              <Button onClick={() => setIsEnterpriseOpen(true)} className="w-full bg-blue-600 hover:bg-blue-700 mb-2">
                 <Users className="w-4 h-4 mr-2" />
                 Contact Sales
               </Button>
-              <Button variant="outline" className="w-full">
+              <Button onClick={() => setIsEnterpriseOpen(true)} variant="outline" className="w-full">
                 <Mail className="w-4 h-4 mr-2" />
                 Get Quote
               </Button>
@@ -462,7 +511,7 @@ export const TabContent: React.FC<TabContentProps> = ({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700 mb-2">
+                  <Button onClick={() => setIsPreferencesOpen(true)} className="w-full bg-purple-600 hover:bg-purple-700 mb-2">
                     <Edit className="w-4 h-4 mr-2" />
                     Configure
                   </Button>
@@ -484,11 +533,11 @@ export const TabContent: React.FC<TabContentProps> = ({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 mb-2">
+                  <Button onClick={() => setIsSecurityOpen(true)} className="w-full bg-blue-600 hover:bg-blue-700 mb-2">
                     <Lock className="w-4 h-4 mr-2" />
                     Manage
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  <Button onClick={() => setIsSecurityOpen(true)} variant="outline" className="w-full">
                     <Key className="w-4 h-4 mr-2" />
                     Change Password
                   </Button>
@@ -506,11 +555,11 @@ export const TabContent: React.FC<TabContentProps> = ({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 mb-2">
+                  <Button onClick={() => setIsBillingOpen(true)} className="w-full bg-green-600 hover:bg-green-700 mb-2">
                     <DollarSign className="w-4 h-4 mr-2" />
                     View Bills
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  <Button onClick={() => setIsBillingOpen(true)} variant="outline" className="w-full">
                     <Edit className="w-4 h-4 mr-2" />
                     Update Payment
                   </Button>
@@ -528,7 +577,7 @@ export const TabContent: React.FC<TabContentProps> = ({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full bg-yellow-600 hover:bg-yellow-700 mb-2">
+                  <Button onClick={() => setIsExportOpen(true)} className="w-full bg-yellow-600 hover:bg-yellow-700 mb-2">
                     <Archive className="w-4 h-4 mr-2" />
                     Download Data
                   </Button>
@@ -572,6 +621,16 @@ export const TabContent: React.FC<TabContentProps> = ({
               <SettingsPanel 
                 currentPlan={currentPlan}
                 onUpgrade={() => setActiveTab('pricing')}
+                onOpenPreferences={() => setIsPreferencesOpen(true)}
+                onOpenSecurity={() => setIsSecurityOpen(true)}
+                onOpenBilling={() => setIsBillingOpen(true)}
+                onOpenAnalytics={() => setIsAnalyticsOpen(true)}
+                onOpenExport={() => setIsExportOpen(true)}
+                onOpenPerformance={() => setIsPerformanceOpen(true)}
+                onOpenHistory={() => setIsHistoryOpen(true)}
+                onOpenComparePlans={() => setIsComparePlansOpen(true)}
+                onOpenUpgradeNow={() => setIsUpgradeNowOpen(true)}
+                onOpenEnterprise={() => setIsEnterpriseOpen(true)}
               />
               <BillingHistory userId={user.id} />
             </div>
@@ -583,6 +642,32 @@ export const TabContent: React.FC<TabContentProps> = ({
           </div>
         )}
       </TabsContent>
+      
+      {/* All Modals */}
+      <UserPreferencesModal open={isPreferencesOpen} onClose={() => setIsPreferencesOpen(false)} />
+      <SecuritySettingsModal open={isSecurityOpen} onClose={() => setIsSecurityOpen(false)} />
+      <BillingModal open={isBillingOpen} onClose={() => setIsBillingOpen(false)} />
+      <AnalyticsModal open={isAnalyticsOpen} onClose={() => setIsAnalyticsOpen(false)} />
+      <ExportDataModal open={isExportOpen} onClose={() => setIsExportOpen(false)} />
+      <PerformanceModal open={isPerformanceOpen} onClose={() => setIsPerformanceOpen(false)} />
+      <HistoryModal open={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
+
+      <SimpleModal open={isComparePlansOpen} title="Compare Plans" onClose={() => setIsComparePlansOpen(false)}>
+        <p className="mb-4">Full plan comparison table coming soon!</p>
+        <ul className="list-disc mb-3 pl-6">
+          <li>See which features are included in Free, Pro, Premium, Business, and Enterprise tiers.</li>
+          <li>Choose the plan that fits your needs.</li>
+        </ul>
+      </SimpleModal>
+      <SimpleModal open={isUpgradeNowOpen} title="Upgrade Now" onClose={() => setIsUpgradeNowOpen(false)}>
+        <p className="mb-4">Click below to get instant Premium activation:</p>
+        <Button className="w-full bg-green-600 hover:bg-green-700">Upgrade to Premium</Button>
+      </SimpleModal>
+      <SimpleModal open={isEnterpriseOpen} title="Enterprise Solutions" onClose={() => setIsEnterpriseOpen(false)}>
+        <p className="mb-4">Ready for a custom plan, white-label, or AI integration?</p>
+        <Button className="w-full bg-blue-600 hover:bg-blue-700 mb-2">Contact Sales</Button>
+        <Button variant="outline" className="w-full">Get Enterprise Quote</Button>
+      </SimpleModal>
     </>
   );
 };
