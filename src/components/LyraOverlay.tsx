@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,11 +66,14 @@ export const LyraOverlay = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
       const lyraMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response,
+        text: data.response || "I apologize, but I'm having trouble processing your request. The AI service may be temporarily unavailable. Please try again in a moment.",
         sender: 'lyra',
         timestamp: new Date()
       };
@@ -77,15 +81,26 @@ export const LyraOverlay = () => {
       setMessages(prev => [...prev, lyraMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message to Lyra');
       
-      const errorMessage: Message = {
+      let errorMessage = "I apologize, but I'm having trouble connecting right now. This might be due to API quota limits or temporary service issues.";
+      
+      if (error && typeof error === 'object' && 'message' in error) {
+        if (error.message.includes('quota') || error.message.includes('429')) {
+          errorMessage = "I'm currently experiencing high demand. The AI service quota may be temporarily exceeded. Please try again in a few minutes.";
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = "There seems to be a network connection issue. Please check your internet connection and try again.";
+        }
+      }
+      
+      toast.error('Lyra messaging temporarily unavailable');
+      
+      const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
+        text: errorMessage,
         sender: 'lyra',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
@@ -108,37 +123,32 @@ export const LyraOverlay = () => {
     setIsMinimized(!isMinimized);
   };
 
-  // Change: properly center and tidy the Lyra launcher button
+  // Lyra launcher button - positioned higher and more visible
   if (!isOpen) {
     return (
-      <div
-        className="fixed bottom-8 right-8 z-50 flex items-center justify-center"
-        style={{ pointerEvents: "all" }}
-      >
+      <div className="fixed bottom-24 right-8 z-50">
         <Button
           onClick={() => setIsOpen(true)}
-          // Remove any w-full or ambiguous width from child
-          className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 border-2 border-purple-400/50 backdrop-blur-sm relative overflow-hidden flex flex-col items-center justify-center p-0"
-          style={{ boxShadow: "0 6px 28px 6px rgba(100,0,150,0.20)" }}
+          className="h-20 w-20 rounded-full bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 border-2 border-purple-400/50 backdrop-blur-sm relative overflow-hidden group"
+          style={{ boxShadow: "0 8px 32px 8px rgba(100,0,150,0.30)" }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-          <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
-            <Bot className="w-7 h-7 text-white mb-1" />
-            <span className="text-xs font-bold text-white leading-none">Lyra</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            <Bot className="w-8 h-8 text-white mb-1" />
+            <span className="text-sm font-bold text-white">Lyra</span>
           </div>
-          {/* Ensure this does not affect centering */}
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse shadow-lg pointer-events-none"></div>
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white animate-pulse shadow-lg"></div>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-8 right-8 z-50 w-96 max-w-[calc(100vw-4rem)] max-h-[calc(100vh-5rem)]" style={{ pointerEvents: "auto" }}>
+    <div className="fixed bottom-8 right-8 z-50 w-96 max-w-[calc(100vw-4rem)]" style={{ maxHeight: 'calc(100vh - 6rem)' }}>
       <Card className={`border border-purple-500/30 bg-black/95 backdrop-blur-xl shadow-2xl transition-all duration-300 flex flex-col ${
-        isMinimized ? 'h-16' : 'h-full'
+        isMinimized ? 'h-16' : 'h-[600px]'
       }`}>
-        <CardHeader className="bg-gradient-to-r from-purple-700/90 via-blue-700/90 to-indigo-700/90 rounded-t-lg border-b border-purple-500/30 pb-3 relative overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-purple-700/90 via-blue-700/90 to-indigo-700/90 rounded-t-lg border-b border-purple-500/30 pb-3 relative overflow-hidden shrink-0">
           <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center space-x-3">
@@ -198,7 +208,7 @@ export const LyraOverlay = () => {
         {!isMinimized && (
           <>
             {isKnowledgeOpen && (
-              <div className="p-4 border-b border-purple-500/30 bg-gradient-to-r from-purple-900/20 to-blue-900/20">
+              <div className="p-4 border-b border-purple-500/30 bg-gradient-to-r from-purple-900/20 to-blue-900/20 shrink-0">
                 <div className="mb-3">
                   <h4 className="text-white font-semibold mb-2 flex items-center">
                     <FileText className="w-4 h-4 mr-2 text-purple-400" />
@@ -206,9 +216,7 @@ export const LyraOverlay = () => {
                   </h4>
                   <p className="text-xs text-purple-300">Upload files to enhance Lyra's knowledge and translation capabilities</p>
                 </div>
-                {/* Show book upload with live progress */}
                 <LyraKnowledgeUpload />
-                {/* --- Add visible knowledge base list --- */}
                 <KnowledgeBaseList />
               </div>
             )}
@@ -252,7 +260,7 @@ export const LyraOverlay = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="p-4 border-t border-purple-500/30 bg-gradient-to-r from-black/80 to-purple-900/20 backdrop-blur-sm">
+              <div className="p-4 border-t border-purple-500/30 bg-gradient-to-r from-black/80 to-purple-900/20 backdrop-blur-sm shrink-0">
                 <div className="flex space-x-2">
                   <Textarea
                     value={inputMessage}
@@ -278,11 +286,3 @@ export const LyraOverlay = () => {
     </div>
   );
 };
-
-// Helper component, shown in the Lyra overlay for non-admins.
-// REMOVE: the entire duplicate chunk at the bottom with
-//    import React from "react";
-//    import { useQuery } ... etc.
-//    const KnowledgeBaseList ... etc.
-//    export default KnowledgeBaseList;
-// That is now in the new file!
