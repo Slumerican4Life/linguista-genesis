@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,10 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpgrade }) => {
+  // State for individual edit modes
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -49,6 +53,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
       return data;
     },
   });
+
+  // On successful load, set form values from profile if not already set (on every load)
+  useEffect(() => {
+    if (userProfile) {
+      setFullName(userProfile.full_name || '');
+      setPhoneNumber(userProfile.phone_number || '');
+      setAvatarUrl(userProfile.avatar_url || '');
+      setEmail(userProfile.email || ''); // Ensure email is picked up
+    }
+  }, [userProfile]);
 
   // Update profile mutation with email support
   const updateProfile = useMutation({
@@ -86,6 +100,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
       toast.error('Failed to update profile');
     },
   });
+
+  // New individual save handlers for email and phone
+  const handleSaveEmail = () => {
+    updateProfile.mutate({ email });
+    setIsEditingEmail(false);
+  };
+  const handleSavePhone = () => {
+    updateProfile.mutate({ phone_number: phoneNumber });
+    setIsEditingPhone(false);
+  };
 
   const handleSaveProfile = () => {
     updateProfile.mutate({
@@ -183,6 +207,21 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
 
   const handleVerificationComplete = () => {
     queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+  };
+
+  // Masking Helpers
+  const maskEmail = (email: string) => {
+    if (!email || email.length <= 2) return email;
+    const [local, domain] = email.split("@");
+    if (!domain) return email;
+    let maskedLocal = local.length > 2
+      ? "*".repeat(local.length - 2) + local.slice(-2)
+      : local;
+    return maskedLocal + "@" + domain;
+  };
+  const maskPhone = (phone: string) => {
+    if (!phone || phone.length <= 2) return phone;
+    return "*".repeat(phone.length - 2) + phone.slice(-2);
   };
 
   if (isLoading) {
@@ -283,44 +322,119 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentPlan, onUpg
                     className="bg-black border-blue-600 text-white placeholder:text-blue-300"
                   />
                 </div>
+                {/* EMAIL, now masked and edit toggle */}
                 <div>
                   <label className="text-sm font-medium text-blue-200 mb-2 block">
                     Email Address
                   </label>
-                  <div className="flex space-x-2">
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      className="bg-black border-blue-600 text-white placeholder:text-blue-300"
-                    />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black"
-                      onClick={() => {
-                        if (email !== userProfile?.email) {
-                          toast.info('Click Save Profile to update your email. You\'ll need to verify the new email address.');
-                        }
-                      }}
-                    >
-                      <Mail className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-blue-300 mt-1">You'll need to verify a new email address</p>
+                  {!isEditingEmail ? (
+                    <div className="flex space-x-2 items-center">
+                      <Input
+                        type="text"
+                        value={maskEmail(email)}
+                        readOnly
+                        className="bg-black border-blue-600 text-white placeholder:text-blue-300 cursor-default select-none"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black"
+                        onClick={() => setIsEditingEmail(true)}
+                        >
+                        Change Email
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex space-x-2 items-center">
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        className="bg-black border-blue-600 text-white placeholder:text-blue-300"
+                        autoFocus
+                      />
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="bg-purple-700 text-white"
+                        onClick={handleSaveEmail}
+                        disabled={updateProfile.isPending}
+                      >
+                        {updateProfile.isPending ? "Saving..." : "Save"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => { setIsEditingEmail(false); setEmail(userProfile?.email || ""); }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-blue-300 mt-1">
+                    Only last two characters/letters are visible for security.
+                    {emailVerified && (
+                      <span className="ml-2 text-green-300 font-semibold">Verified</span>
+                    )}
+                  </p>
                 </div>
+                {/* PHONE, now masked and edit toggle */}
                 <div>
                   <label className="text-sm font-medium text-blue-200 mb-2 block">
                     Phone Number
                   </label>
-                  <Input
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+1 (555) 123-4567"
-                    className="bg-black border-blue-600 text-white placeholder:text-blue-300"
-                  />
+                  {!isEditingPhone ? (
+                    <div className="flex space-x-2 items-center">
+                      <Input
+                        type="text"
+                        value={maskPhone(phoneNumber)}
+                        readOnly
+                        className="bg-black border-blue-600 text-white placeholder:text-blue-300 cursor-default select-none"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-blue-500 text-blue-200 hover:bg-blue-900 bg-black"
+                        onClick={() => setIsEditingPhone(true)}
+                      >
+                        Change Number
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex space-x-2 items-center">
+                      <Input
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={e => setPhoneNumber(e.target.value)}
+                        className="bg-black border-blue-600 text-white placeholder:text-blue-300"
+                        autoFocus
+                      />
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="bg-purple-700 text-white"
+                        onClick={handleSavePhone}
+                        disabled={updateProfile.isPending}
+                      >
+                        {updateProfile.isPending ? "Saving..." : "Save"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => { setIsEditingPhone(false); setPhoneNumber(userProfile?.phone_number || ""); }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-blue-300 mt-1">
+                    Only last two digits are visible for security.
+                    {phoneVerified && (
+                      <span className="ml-2 text-green-300 font-semibold">Verified</span>
+                    )}
+                  </p>
                 </div>
+                {/* SAVE FULL PROFILE BUTTON (Full Name and avatar only) */}
                 <div className="flex items-end">
                   <Button
                     onClick={handleSaveProfile}
