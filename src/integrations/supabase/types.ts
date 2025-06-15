@@ -345,6 +345,7 @@ export type Database = {
           progress: Json | null
           result_data: Json | null
           status: string
+          trial_expires_at: string | null
           updated_at: string
           url: string
           user_id: string | null
@@ -356,6 +357,7 @@ export type Database = {
           progress?: Json | null
           result_data?: Json | null
           status?: string
+          trial_expires_at?: string | null
           updated_at?: string
           url: string
           user_id?: string | null
@@ -367,6 +369,7 @@ export type Database = {
           progress?: Json | null
           result_data?: Json | null
           status?: string
+          trial_expires_at?: string | null
           updated_at?: string
           url?: string
           user_id?: string | null

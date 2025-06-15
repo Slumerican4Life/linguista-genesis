@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -107,7 +106,7 @@ export const WebsiteTranslator: React.FC = () => {
   const subscription = userProfile?.subscriptions?.[0];
   const currentPlan = subscription?.tier || 'free';
   const planLimits: Record<string, number> = {
-    free: 0,
+    free: 1, // Trial allows 1 site
     professional: 1,
     premium: 2,
     business: Infinity
@@ -148,6 +147,10 @@ export const WebsiteTranslator: React.FC = () => {
           steps: defaultSteps
         };
 
+        const trialExpiresAt = currentPlan === 'free'
+          ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+          : null;
+
         const { data: crawlData, error: crawlError } = await supabase
           .from('website_crawl_status')
           .insert({
@@ -155,7 +158,8 @@ export const WebsiteTranslator: React.FC = () => {
             status: 'pending',
             user_id: user.id,
             progress: progressData as any,
-            project_name: name
+            project_name: name,
+            trial_expires_at: trialExpiresAt,
           })
           .select()
           .single();
@@ -210,6 +214,10 @@ export const WebsiteTranslator: React.FC = () => {
   };
 
   const handleViewResult = () => {
+    if (crawlingStatus && currentPlan === 'free' && crawlingStatus.trial_expires_at && new Date(crawlingStatus.trial_expires_at) < new Date()) {
+      toast.error("Your 24-hour trial for this website has expired. Please upgrade to continue accessing it.");
+      return;
+    }
     toast.success('🎉 Opening your translated website!');
     if (crawlingStatus) {
       window.open(crawlingStatus.url, '_blank');
@@ -222,6 +230,11 @@ export const WebsiteTranslator: React.FC = () => {
   };
 
   const handleViewProject = (projectId: string) => {
+    const project = projects?.find(p => p.id === projectId);
+    if (project && currentPlan === 'free' && project.trial_expires_at && new Date(project.trial_expires_at) < new Date()) {
+      toast.error("Your 24-hour trial for this website has expired. Please upgrade to continue managing it.");
+      return;
+    }
     setCurrentCrawlingProject(projectId);
   };
 
@@ -252,6 +265,14 @@ export const WebsiteTranslator: React.FC = () => {
         targetLanguages: ["spanish", "french", "german", "japanese"]
       }
     });
+    setShowPreview(true);
+  };
+
+  const handleShowPreview = () => {
+    if (crawlingStatus && currentPlan === 'free' && crawlingStatus.trial_expires_at && new Date(crawlingStatus.trial_expires_at) < new Date()) {
+      toast.error("Your 24-hour trial for this website has expired. Please upgrade to see the preview.");
+      return;
+    }
     setShowPreview(true);
   };
 
@@ -300,7 +321,7 @@ export const WebsiteTranslator: React.FC = () => {
           crawlingStatus={crawlingStatus}
           onViewResult={handleViewResult}
           onFinishCrawling={handleFinishCrawling}
-          onShowPreview={() => setShowPreview(true)}
+          onShowPreview={handleShowPreview}
         />
 
         {/* Render the Masked Preview Overlay */}
