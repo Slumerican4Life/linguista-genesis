@@ -30,16 +30,24 @@ export const LyraInstructions = () => {
   });
   const queryClient = useQueryClient();
 
-  // Fetch instructions
+  // Fetch instructions using raw SQL to avoid type issues
   const { data: instructions, isLoading } = useQuery({
     queryKey: ['lyra-instructions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('lyra_instructions')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('get_lyra_instructions');
       
-      if (error) throw error;
+      if (error) {
+        // Fallback to direct query if function doesn't exist
+        console.log('Function not found, using direct query');
+        const { data: directData, error: directError } = await supabase
+          .from('lyra_instructions' as any)
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (directError) throw directError;
+        return directData as Instruction[];
+      }
       return data as Instruction[];
     },
   });
@@ -48,7 +56,7 @@ export const LyraInstructions = () => {
   const createInstruction = useMutation({
     mutationFn: async (instruction: typeof newInstruction) => {
       const { error } = await supabase
-        .from('lyra_instructions')
+        .from('lyra_instructions' as any)
         .insert([instruction]);
       
       if (error) throw error;
@@ -68,7 +76,7 @@ export const LyraInstructions = () => {
   const updateInstruction = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Instruction> }) => {
       const { error } = await supabase
-        .from('lyra_instructions')
+        .from('lyra_instructions' as any)
         .update(updates)
         .eq('id', id);
       
@@ -88,7 +96,7 @@ export const LyraInstructions = () => {
   const deleteInstruction = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('lyra_instructions')
+        .from('lyra_instructions' as any)
         .delete()
         .eq('id', id);
       
