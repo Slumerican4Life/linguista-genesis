@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, Search, Gift, Crown, Shield, Phone, Mail, Calendar } from 'lucide-react';
+import { Users, Search, Gift, Crown, Shield, Phone, Mail, Calendar, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -16,6 +16,9 @@ import { GiftSubscriptionModal } from './GiftSubscriptionModal';
 
 type UserRole = Database['public']['Enums']['app_role'];
 type SubscriptionTier = Database['public']['Enums']['subscription_tier'];
+type ProfileWithSubscription = Database['public']['Tables']['profiles']['Row'] & {
+  subscriptions: Database['public']['Tables']['subscriptions']['Row'][] | null;
+};
 
 export const EnhancedUserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,8 +26,7 @@ export const EnhancedUserManagement = () => {
   const [searchType, setSearchType] = useState<'email' | 'phone' | 'name'>('email');
   const queryClient = useQueryClient();
 
-  // Fetch all users - show all by default, filter only when searching
-  const { data: users, isLoading: usersLoading } = useQuery({
+  const { data: users, isLoading: usersLoading } = useQuery<ProfileWithSubscription[]>({
     queryKey: ['admin-users', searchTerm, searchType],
     queryFn: async () => {
       let query = supabase
@@ -32,28 +34,30 @@ export const EnhancedUserManagement = () => {
         .select('*, subscriptions(*)')
         .order('created_at', { ascending: false });
 
-      // Only apply search filter if there's a search term
       if (searchTerm.trim()) {
+        const filterTerm = `%${searchTerm.trim()}%`;
         switch (searchType) {
           case 'email':
-            query = query.ilike('email', `%${searchTerm}%`);
+            query = query.ilike('email', filterTerm);
             break;
           case 'phone':
-            query = query.ilike('phone_number', `%${searchTerm}%`);
+            query = query.ilike('phone_number', filterTerm);
             break;
           case 'name':
-            query = query.ilike('full_name', `%${searchTerm}%`);
+            query = query.ilike('full_name', filterTerm);
             break;
         }
       }
 
       const { data, error } = await query;
-      if (error) throw error;
-      return data;
+      if (error) {
+        toast.error(`Failed to fetch users: ${error.message}`);
+        throw error;
+      }
+      return data || [];
     },
   });
 
-  // Update user role mutation
   const updateUserRole = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string; newRole: UserRole }) => {
       const { error } = await supabase
@@ -71,7 +75,6 @@ export const EnhancedUserManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-logs'] });
       toast.success('User role updated successfully');
     },
     onError: (error) => {
@@ -83,11 +86,12 @@ export const EnhancedUserManagement = () => {
     switch (role) {
       case 'owner': return <Crown className="w-4 h-4 text-yellow-500" />;
       case 'manager': return <Shield className="w-4 h-4 text-blue-500" />;
+      case 'creator': return <Crown className="w-4 h-4 text-purple-400" />;
       default: return <Users className="w-4 h-4 text-gray-500" />;
     }
   };
 
-  const getPlanBadgeColor = (tier: SubscriptionTier) => {
+  const getPlanBadgeColor = (tier: SubscriptionTier | 'free') => {
     switch (tier) {
       case 'business': return 'bg-purple-600';
       case 'premium': return 'bg-blue-600';
@@ -100,152 +104,117 @@ export const EnhancedUserManagement = () => {
     <div className="space-y-6">
       <Card className="border border-purple-500/30 bg-black/60 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-purple-100">User Management & Subscription Gifting</CardTitle>
+          <CardTitle className="text-purple-100">User Management & Gifting</CardTitle>
           <CardDescription className="text-purple-200">
-            All users are shown below. Use search to filter or scroll to find users to gift subscriptions to.
+            View all registered users. Search to filter, or scroll to find users and manage their roles or gift subscriptions.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-4">
             <Select value={searchType} onValueChange={(value: 'email' | 'phone' | 'name') => setSearchType(value)}>
               <SelectTrigger className="w-32 bg-purple-900/20 border-purple-500/30 text-white">
-                <SelectValue />
+                <SelectValue placeholder="Search by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="email">
-                  <div className="flex items-center space-x-2">
-                    <Mail className="w-4 h-4" />
-                    <span>Email</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="phone">
-                  <div className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4" />
-                    <span>Phone</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="name">
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4" />
-                    <span>Name</span>
-                  </div>
-                </SelectItem>
+                <SelectItem value="email"><div className="flex items-center"><Mail className="w-4 h-4 mr-2" />Email</div></SelectItem>
+                <SelectItem value="phone"><div className="flex items-center"><Phone className="w-4 h-4 mr-2" />Phone</div></SelectItem>
+                <SelectItem value="name"><div className="flex items-center"><Users className="w-4 h-4 mr-2" />Name</div></SelectItem>
               </SelectContent>
             </Select>
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-purple-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
               <Input
-                placeholder={`Search by ${searchType} (optional)...`}
+                placeholder={`Search by ${searchType}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-purple-900/20 border-purple-500/30 text-white placeholder:text-purple-300"
               />
             </div>
-            <Button
-              onClick={() => setSearchTerm('')}
-              variant="outline"
-              className="border-purple-400 text-purple-300 hover:bg-purple-900/20"
-            >
-              Clear
-            </Button>
           </div>
 
           <div className="text-sm text-purple-300">
-            {usersLoading ? 'Loading users...' : `Showing ${users?.length || 0} users ${searchTerm ? `matching "${searchTerm}"` : 'total'}`}
+            {usersLoading ? 'Loading users...' : `Showing ${users?.length || 0} users ${searchTerm ? `matching your search` : 'in total'}.`}
           </div>
 
-          {usersLoading ? (
-            <div className="text-center py-8 text-purple-200">Loading users...</div>
-          ) : (
-            <ScrollArea className="h-96 rounded-lg border border-purple-500/30">
-              <Table>
-                <TableHeader className="bg-purple-900/40 sticky top-0">
-                  <TableRow className="border-purple-500/30">
-                    <TableHead className="text-purple-100">User Details</TableHead>
-                    <TableHead className="text-purple-100">Role</TableHead>
-                    <TableHead className="text-purple-100">Current Plan</TableHead>
-                    <TableHead className="text-purple-100">Joined</TableHead>
-                    <TableHead className="text-purple-100">Actions</TableHead>
+          <ScrollArea className="h-[60vh] rounded-lg border border-purple-500/30">
+            <Table>
+              <TableHeader className="bg-purple-900/40 sticky top-0 z-10">
+                <TableRow className="border-b-0">
+                  <TableHead className="text-purple-100">User Details</TableHead>
+                  <TableHead className="text-purple-100">Role</TableHead>
+                  <TableHead className="text-purple-100">Plan</TableHead>
+                  <TableHead className="text-purple-100">Joined</TableHead>
+                  <TableHead className="text-right text-purple-100">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {usersLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      <div className="flex justify-center items-center text-purple-200">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Loading...
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users?.map((user) => (
-                    <TableRow key={user.id} className="border-purple-500/30 bg-black/40">
+                ) : users && users.length > 0 ? (
+                  users.map((user) => (
+                    <TableRow key={user.id} className="border-purple-500/30 bg-black/40 hover:bg-purple-900/20">
                       <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-medium text-white">{user.full_name || 'No name'}</p>
-                          <p className="text-sm text-purple-300 flex items-center">
-                            <Mail className="w-3 h-3 mr-1" />
-                            {user.email}
-                          </p>
-                          {user.phone_number && (
-                            <p className="text-sm text-purple-300 flex items-center">
-                              <Phone className="w-3 h-3 mr-1" />
-                              {user.phone_number}
-                            </p>
-                          )}
-                        </div>
+                        <div className="font-medium text-white">{user.full_name || 'N/A'}</div>
+                        <div className="text-sm text-purple-300">{user.email}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {getRoleIcon(user.role)}
-                          <Select
-                            value={user.role}
-                            onValueChange={(newRole: UserRole) => 
-                              updateUserRole.mutate({ userId: user.id, newRole })
-                            }
-                          >
-                            <SelectTrigger className="w-28 bg-purple-900/20 border-purple-500/30 text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="user">User</SelectItem>
-                              <SelectItem value="manager">Manager</SelectItem>
-                              <SelectItem value="owner">Owner</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        <Select
+                          value={user.role}
+                          onValueChange={(newRole: UserRole) => updateUserRole.mutate({ userId: user.id, newRole })}
+                          disabled={updateUserRole.isPending}
+                        >
+                          <SelectTrigger className="w-32 bg-purple-900/20 border-purple-500/30 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">User</SelectItem>
+                            <SelectItem value="manager">Manager</SelectItem>
+                            <SelectItem value="owner">Owner</SelectItem>
+                            <SelectItem value="creator">Creator</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${getPlanBadgeColor(user.subscriptions?.[0]?.tier || 'free')} text-white`}>
-                          {user.subscriptions?.[0]?.tier || 'free'}
+                        <Badge className={`${getPlanBadgeColor((user.subscriptions && user.subscriptions.length > 0 && user.subscriptions[0].tier) ? user.subscriptions[0].tier : 'free')} text-white`}>
+                          {(user.subscriptions && user.subscriptions.length > 0 && user.subscriptions[0].tier) ? user.subscriptions[0].tier : 'Free'}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center text-sm text-purple-300">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </div>
+                      <TableCell className="text-purple-300">
+                        {new Date(user.created_at).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedUserId(user.id)}
-                            className="border-green-500 text-green-300 hover:bg-green-900/20"
-                          >
-                            <Gift className="w-4 h-4 mr-1" />
-                            Gift Plan
-                          </Button>
-                        </div>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedUserId(user.id)}
+                          className="border-green-500 text-green-300 hover:bg-green-900/20"
+                        >
+                          <Gift className="w-4 h-4 mr-2" />
+                          Gift Plan
+                        </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {users?.length === 0 && (
-                <div className="text-center py-8 text-purple-200">
-                  {searchTerm ? `No users found matching "${searchTerm}"` : 'No users found in the system'}
-                </div>
-              )}
-            </ScrollArea>
-          )}
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center text-purple-200">
+                      No users found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
         </CardContent>
       </Card>
 
-      {/* Gift Subscription Modal */}
       {selectedUserId && (
         <GiftSubscriptionModal
           userId={selectedUserId}

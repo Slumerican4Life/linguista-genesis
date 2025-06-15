@@ -180,9 +180,34 @@ const Index = () => {
     setIsTranslating(false);
   };
 
-  const handleSelectPlan = (planId: string) => {
-    console.log('Selected plan:', planId);
-    toast.info('Stripe integration will be configured for plan selection');
+  const handleSelectPlan = async (priceId: string) => {
+    if (!user) {
+      toast.error("Please log in to upgrade your plan.");
+      handleOpenAuthModal();
+      return;
+    }
+
+    const toastId = toast.loading("Creating checkout session...");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { priceId },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data.url) {
+        toast.success("Redirecting to Stripe...", { id: toastId });
+        window.location.href = data.url;
+      } else {
+        throw new Error("Could not create Stripe checkout session.");
+      }
+    } catch (error: any) {
+      toast.error(`Error: ${error.message}`, { id: toastId });
+      console.error('Error creating checkout session:', error);
+    }
   };
 
   const handleAuthSuccess = () => {
