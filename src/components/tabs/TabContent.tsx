@@ -122,9 +122,7 @@ export const TabContent: React.FC<TabContentProps> = ({
       </TabsContent>
 
       <TabsContent value="dashboard" className="mt-8">
-        <UsageDashboard 
-          user={user}
-        />
+        <UsageDashboard />
       </TabsContent>
 
       <TabsContent value="auth" className="mt-8">
@@ -137,9 +135,7 @@ export const TabContent: React.FC<TabContentProps> = ({
       </TabsContent>
 
       <TabsContent value="settings" className="mt-8">
-        <SettingsPanel 
-          onCancelSubscription={handleCancelSubscription}
-        />
+        <SettingsPanel />
       </TabsContent>
 
       {isAdmin && (

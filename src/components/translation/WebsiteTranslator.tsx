@@ -1,18 +1,14 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Globe, Eye, CheckCircle, Play, Zap } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { TranslationInstructions } from './TranslationInstructions';
-import { TranslationProjectForm } from './TranslationProjectForm';
-import { TranslationProjectList } from './TranslationProjectList';
-import { CrawlingAgents } from '../CrawlingAgents';
-import { ProgressMeter } from '../ProgressMeter';
-import { NeuronixBrain } from '../NeuronixBrain';
+import { LiveDemoSection } from './LiveDemoSection';
+import { CrawlingInterface } from './CrawlingInterface';
+import { WebsiteTranslatorMain } from './WebsiteTranslatorMain';
 import { MaskedPreviewOverlay } from "./MaskedPreviewOverlay";
 
 interface ProgressStep {
@@ -116,6 +112,7 @@ export const WebsiteTranslator: React.FC = () => {
       if (!user) {
         throw new Error('User must be authenticated to create projects');
       }
+      
       // ENFORCE LIMIT for non-owners
       const { data: existing, error: countError } = await supabase
         .from('website_crawl_status')
@@ -125,6 +122,7 @@ export const WebsiteTranslator: React.FC = () => {
       if (!ownerUnlimited && projectCount >= sitesAllowed) {
         throw new Error(`You have reached your plan's limit for masked websites. Please upgrade your subscription for more.`);
       }
+      
       try {
         const defaultSteps: ProgressStep[] = [
           { id: 'init', label: 'Deploying AI Crawlers', status: 'pending', description: 'Neuronix agents launching into cyberspace' },
@@ -232,7 +230,7 @@ export const WebsiteTranslator: React.FC = () => {
     }
   };
 
-  const handleLiveDemo = () => {
+  const handleStartDemo = () => {
     setPreviewProject({
       url: "https://example.com",
       progress: {
@@ -240,33 +238,13 @@ export const WebsiteTranslator: React.FC = () => {
       }
     });
     setShowPreview(true);
-    toast.success('🎬 Starting live translation demonstration!');
   };
 
   // Show login message if not authenticated
   if (!user) {
     return (
       <div className="space-y-6">
-        <TranslationInstructions />
-        
-        {/* Demo Preview for Non-Users */}
-        <Card className="border-green-500/50 bg-gradient-to-br from-green-900/20 to-black/80 backdrop-blur-lg shadow-2xl">
-          <CardContent className="p-8 text-center space-y-6">
-            <div className="space-y-4">
-              <Zap className="w-16 h-16 text-green-400 mx-auto animate-pulse" />
-              <h3 className="text-3xl font-bold text-green-100">See Translation in Action!</h3>
-              <p className="text-green-200 text-lg">Watch how any website gets translated instantly with AI</p>
-            </div>
-            
-            <Button
-              onClick={handleLiveDemo}
-              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold px-8 py-4 text-lg"
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Watch Live Demo
-            </Button>
-          </CardContent>
-        </Card>
+        <LiveDemoSection onStartDemo={handleStartDemo} isLoggedIn={false} />
         
         <Card className="border-purple-500/30 bg-gradient-to-br from-black/80 to-purple-900/20 backdrop-blur-lg shadow-2xl">
           <CardContent className="p-8 text-center space-y-6">
@@ -285,118 +263,39 @@ export const WebsiteTranslator: React.FC = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Live Preview Overlay */}
+        {showPreview && previewProject && (
+          <MaskedPreviewOverlay
+            url={previewProject.url}
+            languages={previewProject.progress?.targetLanguages || ["spanish", "french", "german", "japanese"]}
+            defaultLanguage={previewProject.progress?.targetLanguages?.[0] || "spanish"}
+            onClose={() => setShowPreview(false)}
+          />
+        )}
       </div>
     );
   }
 
   // Show enhanced crawling status if there's an active project
   if (currentCrawlingProject && crawlingStatus) {
-    const progressData = crawlingStatus.progress as any;
-    const steps = (progressData?.steps || []) as ProgressStep[];
-    const isComplete = crawlingStatus.status === 'completed';
-    const currentStep = progressData?.currentStep || 0;
-
     return (
-      <div className="space-y-8 relative">
-        {/* Crawling Agents Animation */}
-        <CrawlingAgents isActive={!isComplete} currentStep={steps[currentStep]?.id || ''} />
-        
-        {/* Enhanced Header with Neuronix Brain */}
-        <div className="text-center space-y-6">
-          <div className="flex items-center justify-center space-x-6">
-            <NeuronixBrain size="lg" isActive={!isComplete} />
-            <div>
-              <h2 className="text-4xl font-black bg-gradient-to-r from-purple-300 via-red-300 to-blue-300 bg-clip-text text-transparent">
-                Neuronix Translation Engine
-              </h2>
-              <p className="text-xl text-purple-200 mt-2">AI Agents at Work</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Progress Display */}
-        <div className="grid lg:grid-cols-2 gap-8">
-          <Card className="border-2 border-purple-500/40 bg-gradient-to-br from-black/80 to-purple-900/20 backdrop-blur-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-3 text-purple-100">
-                <Globe className="w-6 h-6 text-purple-400" />
-                <span>Website Translation</span>
-              </CardTitle>
-              <CardDescription className="text-purple-200">
-                {crawlingStatus.url}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ProgressMeter steps={steps} currentStep={currentStep} />
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-blue-500/40 bg-gradient-to-br from-black/80 to-blue-900/20 backdrop-blur-lg">
-            <CardHeader>
-              <CardTitle className="text-blue-100">Live Translation Feed</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="h-64 bg-black/60 rounded-lg p-4 border border-blue-500/30 overflow-y-auto">
-                {steps.map((step, index) => (
-                  <div key={step.id} className={`text-sm mb-2 ${
-                    step.status === 'completed' ? 'text-green-400' :
-                    step.status === 'processing' ? 'text-yellow-400' : 'text-gray-500'
-                  }`}>
-                    [{new Date().toLocaleTimeString()}] {step.description}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="space-y-8">
+        <CrawlingInterface
+          crawlingStatus={crawlingStatus}
+          onViewResult={handleViewResult}
+          onFinishCrawling={handleFinishCrawling}
+          onShowPreview={() => setShowPreview(true)}
+        />
 
         {/* Render the Masked Preview Overlay */}
-        {isComplete && showPreview && (
+        {crawlingStatus.status === 'completed' && showPreview && (
           <MaskedPreviewOverlay
             url={crawlingStatus.url}
-            languages={progressData?.targetLanguages || []}
-            defaultLanguage={(progressData?.targetLanguages || [])[0]}
+            languages={crawlingStatus.progress?.targetLanguages || []}
+            defaultLanguage={(crawlingStatus.progress?.targetLanguages || [])[0]}
             onClose={() => setShowPreview(false)}
           />
-        )}
-
-        {/* Enhanced Completion Section */}
-        {isComplete && (
-          <Card className="border-2 border-green-500/40 bg-gradient-to-br from-green-900/20 to-black/80 backdrop-blur-lg">
-            <CardContent className="p-8 text-center space-y-6">
-              <div className="space-y-4">
-                <CheckCircle className="w-16 h-16 text-green-400 mx-auto animate-pulse" />
-                <h3 className="text-3xl font-black text-green-300">Translation Complete!</h3>
-                <p className="text-green-200 text-lg">Your website has been successfully translated and is ready to view.</p>
-              </div>
-              
-              <div className="flex justify-center space-x-4">
-                <Button
-                  onClick={handleViewResult}
-                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold px-8 py-4 text-lg"
-                >
-                  <Eye className="w-5 h-5 mr-2" />
-                  View Translated Site
-                </Button>
-                <Button
-                  onClick={handleFinishCrawling}
-                  variant="outline"
-                  className="border-green-500 text-green-400 hover:bg-green-900/20 font-bold px-8 py-4 text-lg"
-                >
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  Finish
-                </Button>
-                {/* Enhanced Live Preview button */}
-                <Button
-                  onClick={() => setShowPreview(true)}
-                  className="bg-gradient-to-r from-green-600 to-purple-600 hover:from-green-700 hover:to-purple-700 text-white font-bold px-8 py-4 text-lg"
-                >
-                  <Zap className="w-5 h-5 mr-2" />
-                  Live Preview Demo
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         )}
       </div>
     );
@@ -404,87 +303,16 @@ export const WebsiteTranslator: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <TranslationInstructions />
+      <LiveDemoSection onStartDemo={handleStartDemo} isLoggedIn={true} />
       
-      {/* Live Demo Section for Logged In Users */}
-      <Card className="border-green-500/50 bg-gradient-to-br from-green-900/10 to-black/80 backdrop-blur-lg shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-green-900/60 to-blue-900/60 rounded-t-lg border-b border-green-500/30">
-          <CardTitle className="flex items-center space-x-4 text-green-100">
-            <Zap className="w-6 h-6 animate-pulse" />
-            <div>
-              <span className="text-xl font-black">Translation Proof of Concept</span>
-              <p className="text-green-200 text-sm font-normal mt-1">See the AI translation in action</p>
-            </div>
-          </CardTitle>
-          <CardDescription className="text-green-200">
-            Click below to see a live demonstration of how any website gets translated
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 text-center">
-          <Button
-            onClick={handleLiveDemo}
-            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold px-8 py-4 text-lg"
-          >
-            <Play className="w-5 h-5 mr-2" />
-            Watch Live Translation Demo
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="border-purple-500/30 bg-gradient-to-br from-black/80 to-purple-900/20 backdrop-blur-lg shadow-2xl">
-        <CardHeader className="bg-gradient-to-r from-purple-900/80 to-blue-900/80 rounded-t-lg border-b border-purple-500/30">
-          <CardTitle className="flex items-center space-x-4 text-purple-100">
-            <NeuronixBrain size="md" />
-            <div>
-              <span className="text-2xl font-black">Neuronix Website Translation</span>
-              <p className="text-purple-200 text-sm font-normal mt-1">Powered by AI Neural Networks</p>
-            </div>
-          </CardTitle>
-          <CardDescription className="text-purple-200">
-            Transform any website into multiple languages while preserving design and functionality
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <Tabs defaultValue="create" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-black/60 border border-purple-500/30">
-              <TabsTrigger value="create" className="data-[state=active]:bg-purple-700 text-purple-200">
-                New Project
-              </TabsTrigger>
-              <TabsTrigger value="manage" className="data-[state=active]:bg-purple-700 text-purple-200">
-                Manage Projects
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="create" className="space-y-6">
-              <TranslationProjectForm
-                onCreateProject={(name, url, languages) =>
-                  createProject.mutate({ name, url, languages })
-                }
-                isCreating={createProject.isPending}
-              />
-            </TabsContent>
-
-            <TabsContent value="manage" className="space-y-4">
-              <TranslationProjectList
-                projects={projects || []}
-                isLoading={isLoading}
-                onViewProject={handleViewProject}
-                onUnmaskProject={handleUnmaskProject}
-                canUnmask={true}
-              />
-              {/* Masked Preview overlay for projects */}
-              {showPreview && previewProject && (
-                <MaskedPreviewOverlay
-                  url={previewProject.url}
-                  languages={previewProject.progress?.targetLanguages || []}
-                  defaultLanguage={previewProject.progress?.targetLanguages?.[0]}
-                  onClose={() => setShowPreview(false)}
-                />
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <WebsiteTranslatorMain
+        projects={projects || []}
+        isLoading={isLoading}
+        onCreateProject={handleCreateProject}
+        isCreating={createProject.isPending}
+        onViewProject={handleViewProject}
+        onUnmaskProject={handleUnmaskProject}
+      />
 
       {/* Live Preview Overlay */}
       {showPreview && previewProject && (
