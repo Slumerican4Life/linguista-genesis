@@ -26,6 +26,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { NeuronixBrain } from '@/components/NeuronixBrain';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
@@ -283,49 +284,30 @@ const Index = () => {
       {/* Add AdSense script to head */}
       <AdSenseScript />
       
-      {/* Ultra-Enhanced Premium Header */}
+      {/* Ultra-Enhanced Premium Header with Neuronix Brain */}
       <header className="relative z-20 border-b-2 border-gradient-to-r from-purple-500/60 via-blue-500/60 to-indigo-500/60 bg-gradient-to-r from-slate-950/95 via-purple-950/50 to-blue-950/50 backdrop-blur-2xl shadow-2xl">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-indigo-600/10 animate-shimmer"></div>
         <div className="container mx-auto px-6 py-8 relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              {/* Premium Neuronix Brain Logo */}
+              {/* Enhanced Neuronix Brain Logo */}
               <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500 rounded-3xl animate-pulse blur-lg opacity-75"></div>
-                <div className="relative w-20 h-20 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-3xl flex items-center justify-center border-3 border-purple-300/40 shadow-2xl hover:shadow-purple-400/60 transition-all duration-500 transform hover:scale-110 group-hover:rotate-3">
-                  <img 
-                    src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
-                    alt="Neuronix Brain" 
-                    className="w-12 h-12 object-contain filter brightness-300 contrast-200 drop-shadow-[0_0_20px_rgba(255,255,255,1)]"
-                    style={{ 
-                      filter: 'brightness(3) contrast(2) drop-shadow(0 0 20px rgba(255,255,255,1)) hue-rotate(270deg)',
-                      imageRendering: 'crisp-edges'
-                    }}
-                  />
-                  {/* Neural pulse rings */}
-                  <div className="absolute inset-0 rounded-3xl border-2 border-purple-400/50 animate-ping"></div>
-                  <div className="absolute inset-0 rounded-3xl border border-blue-400/30 animate-ping" style={{ animationDelay: '0.5s' }}></div>
-                </div>
-                {/* Floating neural indicators */}
-                <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center border-3 border-white/30 animate-bounce shadow-2xl">
-                  <span className="text-lg">🧠</span>
-                </div>
-                <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white/40 animate-pulse"></div>
+                <NeuronixBrain size="lg" isActive className="hover:scale-110 transition-transform duration-500" />
               </div>
 
               {/* Enhanced Brand Identity */}
               <div className="space-y-2">
-                <h1 className="text-6xl font-black bg-gradient-to-r from-purple-300 via-blue-300 via-indigo-300 to-purple-300 bg-clip-text text-transparent drop-shadow-2xl animate-gradient bg-size-200">
+                <h1 className="text-6xl font-black bg-gradient-to-r from-purple-300 via-red-300 via-blue-300 to-purple-300 bg-clip-text text-transparent drop-shadow-2xl animate-gradient bg-size-200">
                   Linguista
                 </h1>
                 <div className="flex items-center space-x-3">
-                  <p className="text-lg bg-gradient-to-r from-purple-200 via-blue-200 to-indigo-200 bg-clip-text text-transparent font-bold">
+                  <p className="text-lg bg-gradient-to-r from-purple-200 via-red-200 to-blue-200 bg-clip-text text-transparent font-bold">
                     Powered by Neuronix Neural Engine
                   </p>
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                   </div>
                 </div>
                 <p className="text-sm text-purple-300/80 font-medium italic">
@@ -334,14 +316,8 @@ const Index = () => {
               </div>
               
               {/* Advanced Neuronix System Status */}
-              <div className="hidden lg:flex items-center space-x-6 ml-12 p-6 bg-gradient-to-br from-purple-900/60 via-blue-900/60 to-indigo-900/60 rounded-3xl border-2 border-purple-400/30 backdrop-blur-xl shadow-2xl">
-                <div className="relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-2xl flex items-center justify-center animate-pulse shadow-2xl border-2 border-yellow-300/40">
-                    <span className="text-3xl">🧠</span>
-                  </div>
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white/40 animate-bounce"></div>
-                  <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full animate-ping"></div>
-                </div>
+              <div className="hidden lg:flex items-center space-x-6 ml-12 p-6 bg-gradient-to-br from-purple-900/60 via-red-900/30 to-blue-900/60 rounded-3xl border-2 border-purple-400/30 backdrop-blur-xl shadow-2xl">
+                <NeuronixBrain size="sm" isActive />
                 <div className="space-y-2">
                   <div className="flex items-center space-x-3">
                     <p className="text-lg font-black bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
@@ -367,7 +343,7 @@ const Index = () => {
             </div>
             
             <div className="flex items-center space-x-6">
-              <Badge variant="secondary" className="bg-gradient-to-r from-purple-800/90 to-blue-800/90 text-white border-2 border-purple-400/40 px-6 py-3 font-black shadow-2xl text-lg">
+              <Badge variant="secondary" className="bg-gradient-to-r from-purple-800/90 via-red-800/60 to-blue-800/90 text-white border-2 border-purple-400/40 px-6 py-3 font-black shadow-2xl text-lg">
                 <Bot className="w-5 h-5 mr-3" />
                 Neural Core Active
               </Badge>
@@ -454,42 +430,16 @@ const Index = () => {
 
           {/* Translation Tab */}
           <TabsContent value="translate" className="space-y-12">
-            {/* Ultra-Enhanced Hero Section */}
+            {/* Ultra-Enhanced Hero Section with Neuronix Brain */}
             <div className="text-center space-y-12 mb-16 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/15 via-blue-600/15 to-indigo-600/15 animate-pulse rounded-3xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/15 via-red-600/10 to-blue-600/15 animate-pulse rounded-3xl"></div>
               <div className="relative z-10 p-12">
                 <div className="flex items-center justify-center mb-12">
-                  <div className="relative">
-                    {/* Main brain visualization */}
-                    <div className="w-48 h-48 rounded-full bg-gradient-to-br from-purple-600/40 via-blue-600/40 to-indigo-600/40 animate-spin-slow border-4 border-purple-400/60 shadow-2xl backdrop-blur-sm" 
-                         style={{ animationDuration: '30s' }}>
-                      <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-700/60 via-blue-700/60 to-indigo-700/60 flex items-center justify-center backdrop-blur-lg border-2 border-white/20">
-                        <img 
-                          src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
-                          alt="Neuronix Brain Core" 
-                          className="w-24 h-24 object-contain filter brightness-300 contrast-200 drop-shadow-[0_0_30px_rgba(255,255,255,1)]"
-                          style={{ 
-                            filter: 'brightness(3) contrast(2) drop-shadow(0 0 30px rgba(255,255,255,1)) hue-rotate(270deg)',
-                            imageRendering: 'crisp-edges'
-                          }}
-                        />
-                      </div>
-                    </div>
-                    {/* Enhanced Brain Technology Indicator */}
-                    <div className="absolute -top-8 -right-8 w-20 h-20 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center border-4 border-white/40 animate-bounce shadow-2xl">
-                      <span className="text-4xl">🧠</span>
-                    </div>
-                    {/* Multiple neural network indicators */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                      <div className="w-6 h-6 bg-purple-400 rounded-full animate-ping"></div>
-                    </div>
-                    <div className="absolute top-1/4 left-1/4 w-4 h-4 bg-blue-400 rounded-full animate-pulse"></div>
-                    <div className="absolute bottom-1/4 right-1/4 w-4 h-4 bg-indigo-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                  </div>
+                  <NeuronixBrain size="xl" isActive className="animate-float" />
                 </div>
                 <h2 className="text-8xl font-black text-white mb-12 relative z-10 leading-tight">
                   <span className="block">Transform Content with</span>
-                  <span className="block mt-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-blue-400 via-indigo-400 to-purple-400 animate-gradient bg-size-200">
+                  <span className="block mt-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-red-400 via-blue-400 to-purple-400 animate-gradient bg-size-200">
                     Neuronix Intelligence
                   </span>
                 </h2>
@@ -497,13 +447,13 @@ const Index = () => {
                   Our revolutionary AI agents powered by Neuronix neural networks deliver contextual, culturally-rich translations that capture tone, humor, and local nuances—transcending literal word conversion.
                 </p>
                 <div className="flex justify-center space-x-12 mt-12 relative z-10">
-                  <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 text-xl font-black shadow-2xl border-2 border-purple-300/40 rounded-2xl">
+                  <Badge className="bg-gradient-to-r from-purple-600 to-red-600 text-white px-8 py-4 text-xl font-black shadow-2xl border-2 border-purple-300/40 rounded-2xl">
                     🧠 Neural Translation Matrix
                   </Badge>
-                  <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 text-xl font-black shadow-2xl border-2 border-blue-300/40 rounded-2xl">
+                  <Badge className="bg-gradient-to-r from-red-600 to-blue-600 text-white px-8 py-4 text-xl font-black shadow-2xl border-2 border-red-300/40 rounded-2xl">
                     🌍 Cultural Intelligence Engine
                   </Badge>
-                  <Badge className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 text-xl font-black shadow-2xl border-2 border-indigo-300/40 rounded-2xl">
+                  <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 text-xl font-black shadow-2xl border-2 border-blue-300/40 rounded-2xl">
                     ⚡ Quantum Processing Speed
                   </Badge>
                 </div>
