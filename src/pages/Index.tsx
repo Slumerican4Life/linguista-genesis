@@ -20,6 +20,8 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { WebsiteTranslator } from '@/components/translation/WebsiteTranslator';
 import { AdSenseAd } from '@/components/AdSenseAd';
 import { AdSenseScript } from '@/components/AdSenseScript';
+import { AdvancedAnalytics } from '@/components/analytics/AdvancedAnalytics';
+import { BillingHistory } from '@/components/payment/BillingHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useQuery } from '@tanstack/react-query';
@@ -241,91 +243,137 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-purple-900/20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/40 to-blue-950/30 relative overflow-hidden">
+      {/* Neuronix Neural Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-radial from-purple-600/30 to-transparent rounded-full animate-pulse" style={{ animationDuration: '4s' }}></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-radial from-blue-600/30 to-transparent rounded-full animate-pulse" style={{ animationDelay: '2s', animationDuration: '6s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-radial from-indigo-600/20 to-transparent rounded-full animate-pulse" style={{ animationDelay: '1s', animationDuration: '5s' }}></div>
+      </div>
+
+      {/* Neural Grid Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="h-full w-full bg-grid-pattern bg-center"></div>
+      </div>
+
       {/* Add AdSense script to head */}
       <AdSenseScript />
       
-      {/* Enhanced Header */}
-      <header className="relative z-10 border-b border-gradient-to-r from-purple-600/50 via-blue-600/50 to-indigo-600/50 bg-gradient-to-r from-black via-gray-900 to-black backdrop-blur-xl">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-blue-600/5 to-indigo-600/5"></div>
-        <div className="container mx-auto px-4 py-6 relative z-10">
+      {/* Ultra-Enhanced Premium Header */}
+      <header className="relative z-20 border-b-2 border-gradient-to-r from-purple-500/60 via-blue-500/60 to-indigo-500/60 bg-gradient-to-r from-slate-950/95 via-purple-950/50 to-blue-950/50 backdrop-blur-2xl shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-indigo-600/10 animate-shimmer"></div>
+        <div className="container mx-auto px-6 py-8 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-8">
+              {/* Premium Neuronix Brain Logo */}
               <div className="relative group">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center border-2 border-purple-400/30 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500 rounded-3xl animate-pulse blur-lg opacity-75"></div>
+                <div className="relative w-20 h-20 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-3xl flex items-center justify-center border-3 border-purple-300/40 shadow-2xl hover:shadow-purple-400/60 transition-all duration-500 transform hover:scale-110 group-hover:rotate-3">
                   <img 
                     src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
-                    alt="Linguista Logo" 
-                    className="w-10 h-10 object-contain filter brightness-200 contrast-150 drop-shadow-[0_0_15px_rgba(255,255,255,0.9)]"
+                    alt="Neuronix Brain" 
+                    className="w-12 h-12 object-contain filter brightness-300 contrast-200 drop-shadow-[0_0_20px_rgba(255,255,255,1)]"
                     style={{ 
-                      filter: 'brightness(2.5) contrast(1.8) drop-shadow(0 0 15px rgba(255,255,255,0.9))',
+                      filter: 'brightness(3) contrast(2) drop-shadow(0 0 20px rgba(255,255,255,1)) hue-rotate(270deg)',
                       imageRendering: 'crisp-edges'
                     }}
                   />
+                  {/* Neural pulse rings */}
+                  <div className="absolute inset-0 rounded-3xl border-2 border-purple-400/50 animate-ping"></div>
+                  <div className="absolute inset-0 rounded-3xl border border-blue-400/30 animate-ping" style={{ animationDelay: '0.5s' }}></div>
                 </div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center border-2 border-white/20 animate-pulse">
-                  <span className="text-xs">🧠</span>
+                {/* Floating neural indicators */}
+                <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center border-3 border-white/30 animate-bounce shadow-2xl">
+                  <span className="text-lg">🧠</span>
                 </div>
+                <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white/20 animate-pulse"></div>
               </div>
-              <div>
-                <h1 className="text-4xl font-black bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-2xl">
+
+              {/* Enhanced Brand Identity */}
+              <div className="space-y-2">
+                <h1 className="text-6xl font-black bg-gradient-to-r from-purple-300 via-blue-300 via-indigo-300 to-purple-300 bg-clip-text text-transparent drop-shadow-2xl animate-gradient bg-size-200">
                   Linguista
                 </h1>
-                <p className="text-sm bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent font-bold">
-                  by Neuronix ~ Language Rewired with AI
+                <div className="flex items-center space-x-3">
+                  <p className="text-lg bg-gradient-to-r from-purple-200 via-blue-200 to-indigo-200 bg-clip-text text-transparent font-bold">
+                    Powered by Neuronix Neural Engine
+                  </p>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                </div>
+                <p className="text-sm text-purple-300/80 font-medium italic">
+                  ⚡ Next-Gen Language AI • Beyond Human Translation
                 </p>
               </div>
               
-              {/* Enhanced Neuronix Brain Visual */}
-              <div className="hidden md:flex items-center space-x-4 ml-8 p-4 bg-gradient-to-br from-purple-900/40 via-blue-900/40 to-indigo-900/40 rounded-2xl border border-purple-500/30 backdrop-blur-sm shadow-2xl">
+              {/* Advanced Neuronix System Status */}
+              <div className="hidden lg:flex items-center space-x-6 ml-12 p-6 bg-gradient-to-br from-purple-900/60 via-blue-900/60 to-indigo-900/60 rounded-3xl border-2 border-purple-400/30 backdrop-blur-xl shadow-2xl">
                 <div className="relative">
-                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500 rounded-full flex items-center justify-center animate-pulse shadow-lg">
-                    <span className="text-2xl">🧠</span>
+                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-2xl flex items-center justify-center animate-pulse shadow-2xl border-2 border-yellow-300/40">
+                    <span className="text-3xl">🧠</span>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full border border-white/30 animate-bounce"></div>
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white/40 animate-bounce"></div>
+                  <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full animate-ping"></div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-                    Neuronix Neural Core
-                  </p>
-                  <p className="text-xs text-purple-300 font-medium">Advanced AI Translation Engine</p>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-green-400 font-bold">Neural Pathways Active</span>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3">
+                    <p className="text-lg font-black bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
+                      Neuronix Core
+                    </p>
+                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-xs px-3 py-1">
+                      ONLINE
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-purple-200 font-semibold">Advanced Neural Translation Matrix</p>
+                  <div className="flex items-center space-x-4 mt-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-green-300 font-bold">Neural Paths: Active</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-blue-300 font-bold">5 AI Agents Ready</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-gradient-to-r from-purple-700/80 to-blue-700/80 text-white border border-purple-500/30 px-4 py-2 font-bold shadow-lg">
-                <Bot className="w-4 h-4 mr-2" />
-                5 AI Agents Online
+            <div className="flex items-center space-x-6">
+              <Badge variant="secondary" className="bg-gradient-to-r from-purple-800/90 to-blue-800/90 text-white border-2 border-purple-400/40 px-6 py-3 font-black shadow-2xl text-lg">
+                <Bot className="w-5 h-5 mr-3" />
+                Neural Core Active
               </Badge>
               {userProfile && (
-                <Badge variant="outline" className="px-4 py-2 font-bold border-blue-500/50 text-blue-200 bg-gradient-to-r from-blue-900/40 to-purple-900/40 backdrop-blur-sm">
-                  <Shield className="w-4 h-4 mr-2" />
+                <Badge variant="outline" className="px-6 py-3 font-black border-2 border-blue-400/60 text-blue-200 bg-gradient-to-r from-blue-900/60 to-purple-900/60 backdrop-blur-xl text-lg">
+                  <Shield className="w-5 h-5 mr-3" />
                   {userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)}
                 </Badge>
               )}
               {user ? (
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-blue-200 font-medium bg-gradient-to-r from-blue-900/30 to-purple-900/30 px-3 py-1 rounded-lg backdrop-blur-sm">
-                    Welcome, {userProfile?.full_name || user.email}
-                  </span>
-                  <Button variant="outline" size="sm" onClick={handleSignOut} className="border-red-500/50 text-red-400 hover:bg-red-900/30 bg-black/50 backdrop-blur-sm">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
+                <div className="flex items-center space-x-4">
+                  <div className="text-right bg-gradient-to-r from-blue-900/40 to-purple-900/40 px-4 py-2 rounded-xl backdrop-blur-sm border border-blue-400/30">
+                    <span className="text-lg text-blue-200 font-bold block">
+                      {userProfile?.full_name || user.email}
+                    </span>
+                    <span className="text-sm text-purple-300">Neural User</span>
+                  </div>
+                  <Button variant="outline" size="lg" onClick={handleSignOut} className="border-2 border-red-400/60 text-red-300 hover:bg-red-900/40 bg-black/60 backdrop-blur-sm font-bold">
+                    <LogOut className="w-5 h-5 mr-2" />
+                    Neural Logout
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-3">
-                  <Button onClick={() => { setIsSignUp(false); setIsAuthModalOpen(true); }} size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Sign In
+                <div className="flex items-center space-x-4">
+                  <Button onClick={() => { setIsSignUp(false); setIsAuthModalOpen(true); }} size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-2xl font-bold px-8 py-3">
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Neural Access
                   </Button>
-                  <Button onClick={() => { setIsSignUp(true); setIsAuthModalOpen(true); }} size="sm" variant="outline" className="border-blue-500/50 text-blue-200 hover:bg-blue-900/30 bg-black/50 backdrop-blur-sm">
-                    Sign Up
+                  <Button onClick={() => { setIsSignUp(true); setIsAuthModalOpen(true); }} size="lg" variant="outline" className="border-2 border-blue-400/60 text-blue-200 hover:bg-blue-900/40 bg-black/60 backdrop-blur-sm font-bold px-8 py-3">
+                    Join Neuronix
                   </Button>
                 </div>
               )}
@@ -340,88 +388,99 @@ const Index = () => {
         <AdBanner position="top" />
       </div>
 
-      <main className="relative z-10 container mx-auto px-4 py-8">
+      <main className="relative z-10 container mx-auto px-6 py-12">
         {/* Enhanced Navigation Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full h-14 bg-gradient-to-r from-black via-gray-900 to-black border border-purple-600/30 backdrop-blur-xl rounded-2xl shadow-2xl" style={{
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-12">
+          <TabsList className="grid w-full h-18 bg-gradient-to-r from-slate-950/95 via-purple-950/60 to-blue-950/60 border-2 border-purple-500/40 backdrop-blur-2xl rounded-3xl shadow-2xl" style={{
             gridTemplateColumns: isAdmin ? 'repeat(6, 1fr)' : 'repeat(5, 1fr)'
           }}>
-            <TabsTrigger value="translate" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
-              <Sparkles className="w-4 h-4" />
-              <span className="hidden sm:inline">Translate</span>
-              <span className="sm:hidden">Text</span>
+            <TabsTrigger value="translate" className="flex items-center justify-center space-x-3 text-lg font-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-6 py-4 rounded-2xl transition-all duration-500 hover:scale-105">
+              <Sparkles className="w-6 h-6" />
+              <span className="hidden sm:inline">Neural Translate</span>
+              <span className="sm:hidden">Translate</span>
             </TabsTrigger>
-            <TabsTrigger value="website" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
-              <Globe className="w-4 h-4" />
-              <span className="hidden sm:inline">Website</span>
-              <span className="sm:hidden">Web</span>
+            <TabsTrigger value="website" className="flex items-center justify-center space-x-3 text-lg font-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-6 py-4 rounded-2xl transition-all duration-500 hover:scale-105">
+              <Globe className="w-6 h-6" />
+              <span className="hidden sm:inline">Website Engine</span>
+              <span className="sm:hidden">Website</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Dashboard</span>
-              <span className="sm:hidden">Stats</span>
+            <TabsTrigger value="dashboard" className="flex items-center justify-center space-x-3 text-lg font-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-6 py-4 rounded-2xl transition-all duration-500 hover:scale-105">
+              <BarChart3 className="w-6 h-6" />
+              <span className="hidden sm:inline">Neural Dashboard</span>
+              <span className="sm:hidden">Dashboard</span>
             </TabsTrigger>
             {isAdmin && (
-              <TabsTrigger value="admin" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Admin</span>
+              <TabsTrigger value="admin" className="flex items-center justify-center space-x-3 text-lg font-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-6 py-4 rounded-2xl transition-all duration-500 hover:scale-105">
+                <Users className="w-6 h-6" />
+                <span className="hidden sm:inline">Neural Admin</span>
                 <span className="sm:hidden">Admin</span>
               </TabsTrigger>
             )}
-            <TabsTrigger value="pricing" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
-              <CreditCard className="w-4 h-4" />
-              <span className="hidden sm:inline">Pricing</span>
+            <TabsTrigger value="pricing" className="flex items-center justify-center space-x-3 text-lg font-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-6 py-4 rounded-2xl transition-all duration-500 hover:scale-105">
+              <CreditCard className="w-6 h-6" />
+              <span className="hidden sm:inline">Neural Plans</span>
               <span className="sm:hidden">Plans</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center justify-center space-x-2 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-3 rounded-xl transition-all duration-300">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
-              <span className="sm:hidden">Config</span>
+            <TabsTrigger value="settings" className="flex items-center justify-center space-x-3 text-lg font-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-700 data-[state=active]:to-blue-700 data-[state=active]:text-white text-purple-200 px-6 py-4 rounded-2xl transition-all duration-500 hover:scale-105">
+              <Settings className="w-6 h-6" />
+              <span className="hidden sm:inline">Neural Config</span>
+              <span className="sm:hidden">Settings</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Translation Tab */}
-          <TabsContent value="translate" className="space-y-8">
-            {/* Enhanced Hero Section */}
-            <div className="text-center space-y-8 mb-12 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-indigo-600/10 animate-pulse rounded-3xl"></div>
-              <div className="relative z-10 p-8">
-                <div className="flex items-center justify-center mb-8">
+          <TabsContent value="translate" className="space-y-12">
+            {/* Ultra-Enhanced Hero Section */}
+            <div className="text-center space-y-12 mb-16 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/15 via-blue-600/15 to-indigo-600/15 animate-pulse rounded-3xl"></div>
+              <div className="relative z-10 p-12">
+                <div className="flex items-center justify-center mb-12">
                   <div className="relative">
-                    <div className="w-40 h-40 rounded-full bg-gradient-to-br from-purple-600/30 via-blue-600/30 to-indigo-600/30 animate-spin-slow border-4 border-purple-500/50 shadow-2xl" 
-                         style={{ animationDuration: '20s' }}>
-                      <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-700/50 via-blue-700/50 to-indigo-700/50 flex items-center justify-center backdrop-blur-sm">
-                        <Globe className="w-20 h-20 text-blue-300 animate-pulse" />
+                    {/* Main brain visualization */}
+                    <div className="w-48 h-48 rounded-full bg-gradient-to-br from-purple-600/40 via-blue-600/40 to-indigo-600/40 animate-spin-slow border-4 border-purple-400/60 shadow-2xl backdrop-blur-sm" 
+                         style={{ animationDuration: '30s' }}>
+                      <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-700/60 via-blue-700/60 to-indigo-700/60 flex items-center justify-center backdrop-blur-lg border-2 border-white/20">
+                        <img 
+                          src="/lovable-uploads/56b3973a-75ee-45d3-8670-40289d5fab04.png" 
+                          alt="Neuronix Brain Core" 
+                          className="w-24 h-24 object-contain filter brightness-300 contrast-200 drop-shadow-[0_0_30px_rgba(255,255,255,1)]"
+                          style={{ 
+                            filter: 'brightness(3) contrast(2) drop-shadow(0 0 30px rgba(255,255,255,1)) hue-rotate(270deg)',
+                            imageRendering: 'crisp-edges'
+                          }}
+                        />
                       </div>
                     </div>
                     {/* Enhanced Brain Technology Indicator */}
-                    <div className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500 rounded-full flex items-center justify-center border-4 border-white/30 animate-bounce shadow-2xl">
-                      <span className="text-3xl">🧠</span>
+                    <div className="absolute -top-8 -right-8 w-20 h-20 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center border-4 border-white/40 animate-bounce shadow-2xl">
+                      <span className="text-4xl">🧠</span>
                     </div>
-                    {/* Neural network dots */}
+                    {/* Multiple neural network indicators */}
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                      <div className="w-4 h-4 bg-purple-500 rounded-full animate-ping"></div>
+                      <div className="w-6 h-6 bg-purple-400 rounded-full animate-ping"></div>
                     </div>
+                    <div className="absolute top-1/4 left-1/4 w-4 h-4 bg-blue-400 rounded-full animate-pulse"></div>
+                    <div className="absolute bottom-1/4 right-1/4 w-4 h-4 bg-indigo-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
                   </div>
                 </div>
-                <h2 className="text-7xl font-black text-white mb-8 relative z-10">
-                  Transform Your Content with
-                  <span className="block mt-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 via-indigo-500 to-purple-500 animate-gradient">
-                    Neuronix Brain Power
+                <h2 className="text-8xl font-black text-white mb-12 relative z-10 leading-tight">
+                  <span className="block">Transform Content with</span>
+                  <span className="block mt-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-blue-400 via-indigo-400 to-purple-400 animate-gradient bg-size-200">
+                    Neuronix Intelligence
                   </span>
                 </h2>
-                <p className="text-2xl text-purple-200 max-w-4xl mx-auto leading-relaxed font-medium relative z-10 mb-8">
-                  Our AI agent team powered by Neuronix neural networks delivers contextual, culturally-rich translations that capture tone, humor, and local nuances—not just literal word conversion.
+                <p className="text-3xl text-purple-200 max-w-5xl mx-auto leading-relaxed font-bold relative z-10 mb-12">
+                  Our revolutionary AI agents powered by Neuronix neural networks deliver contextual, culturally-rich translations that capture tone, humor, and local nuances—transcending literal word conversion.
                 </p>
-                <div className="flex justify-center space-x-8 mt-8 relative z-10">
-                  <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 text-lg font-bold shadow-2xl">
-                    🧠 Neural Translation
+                <div className="flex justify-center space-x-12 mt-12 relative z-10">
+                  <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 text-xl font-black shadow-2xl border-2 border-purple-300/40 rounded-2xl">
+                    🧠 Neural Translation Matrix
                   </Badge>
-                  <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 text-lg font-bold shadow-2xl">
-                    🌍 Cultural Context
+                  <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 text-xl font-black shadow-2xl border-2 border-blue-300/40 rounded-2xl">
+                    🌍 Cultural Intelligence Engine
                   </Badge>
-                  <Badge className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 text-lg font-bold shadow-2xl">
-                    ⚡ Real-time Processing
+                  <Badge className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 text-xl font-black shadow-2xl border-2 border-indigo-300/40 rounded-2xl">
+                    ⚡ Quantum Processing Speed
                   </Badge>
                 </div>
               </div>
@@ -432,9 +491,9 @@ const Index = () => {
 
             {/* Advanced Analytics */}
             {user && (
-              <div className="mt-12">
-                <h3 className="text-3xl font-bold text-white mb-8 text-center">
-                  Advanced Analytics & Insights
+              <div className="mt-16">
+                <h3 className="text-4xl font-black text-white mb-12 text-center bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent">
+                  Neural Analytics & Intelligence Insights
                 </h3>
                 <AdvancedAnalytics />
               </div>
@@ -592,17 +651,17 @@ const Index = () => {
                   onUpgrade={() => setActiveTab('pricing')}
                 />
               ) : (
-                <div className="flex items-center justify-center py-12">
+                <div className="flex items-center justify-center py-16">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                    <p className="text-blue-200">Loading your dashboard...</p>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-500 mx-auto mb-6"></div>
+                    <p className="text-blue-200 text-xl">Loading Neural Dashboard...</p>
                   </div>
                 </div>
               )
             ) : (
-              <div className="text-center py-12">
-                <p className="text-blue-200 mb-4">Please sign in to view your dashboard</p>
-                <Button onClick={() => setIsAuthModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">Sign In</Button>
+              <div className="text-center py-16">
+                <p className="text-blue-200 mb-6 text-xl">Please access Neural Network to view dashboard</p>
+                <Button onClick={() => setIsAuthModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-xl px-8 py-4">Neural Access</Button>
               </div>
             )}
           </TabsContent>
@@ -625,7 +684,7 @@ const Index = () => {
           {/* Enhanced Settings Tab with Billing History */}
           <TabsContent value="settings">
             {user ? (
-              <div className="space-y-8">
+              <div className="space-y-12">
                 <SettingsPanel 
                   currentPlan={currentPlan}
                   onUpgrade={() => setActiveTab('pricing')}
@@ -633,9 +692,9 @@ const Index = () => {
                 <BillingHistory userId={user.id} />
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-blue-200 mb-4">Please sign in to access settings</p>
-                <Button onClick={() => setIsAuthModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">Sign In</Button>
+              <div className="text-center py-16">
+                <p className="text-blue-200 mb-6 text-xl">Please access Neural Network to view settings</p>
+                <Button onClick={() => setIsAuthModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-xl px-8 py-4">Neural Access</Button>
               </div>
             )}
           </TabsContent>
