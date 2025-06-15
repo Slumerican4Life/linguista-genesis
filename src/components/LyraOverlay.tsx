@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -144,10 +143,8 @@ export const LyraOverlay = () => {
   }
 
   return (
-    <div className="fixed bottom-8 right-8 z-50 w-96 max-w-[calc(100vw-4rem)]" style={{ maxHeight: 'calc(100vh - 6rem)' }}>
-      <Card className={`border border-purple-500/30 bg-black/95 backdrop-blur-xl shadow-2xl transition-all duration-300 flex flex-col ${
-        isMinimized ? 'h-16' : 'h-[600px]'
-      }`}>
+    <div className="fixed bottom-8 right-8 z-50 w-96 max-w-[calc(100vw-4rem)] transition-all duration-300" style={{ height: isMinimized ? '4rem' : `min(600px, calc(100vh - 6rem))` }}>
+      <Card className={`w-full h-full border border-purple-500/30 bg-black/95 backdrop-blur-xl shadow-2xl flex flex-col`}>
         <CardHeader className="bg-gradient-to-r from-purple-700/90 via-blue-700/90 to-indigo-700/90 rounded-t-lg border-b border-purple-500/30 pb-3 relative overflow-hidden shrink-0">
           <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
           <div className="flex items-center justify-between relative z-10">

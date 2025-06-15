@@ -140,8 +140,6 @@ export const TabContent: React.FC<TabContentProps> = ({
 
       <TabsContent value="settings" className="mt-8">
         <SettingsPanel 
-          user={user}
-          userProfile={userProfile}
           currentPlan={currentPlan}
           onUpgrade={handleUpgrade}
           onManageSubscription={handleManageSubscription}
