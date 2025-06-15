@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { TranslationSection } from '@/components/sections/TranslationSection';
@@ -33,6 +34,7 @@ interface TabContentProps {
   onOpenAnalytics: () => void;
   onOpenPerformance: () => void;
   onOpenBilling: () => void;
+  onOpenComparePlans: () => void;
 }
 
 export const TabContent: React.FC<TabContentProps> = ({
@@ -57,6 +59,7 @@ export const TabContent: React.FC<TabContentProps> = ({
   onOpenAnalytics,
   onOpenPerformance,
   onOpenBilling,
+  onOpenComparePlans,
 }) => {
   // Handle manage subscription
   const handleManageSubscription = async () => {
@@ -101,6 +104,10 @@ export const TabContent: React.FC<TabContentProps> = ({
   const handleUpgrade = () => {
     setActiveTab('pricing');
     toast.info("Please select a new plan to upgrade.");
+  };
+  
+  const handleContactSales = () => {
+    window.location.href = "mailto:cleanasawhistle1000@gmail.com?subject=Inquiry about Enterprise Plan&body=Hello, I am interested in learning more about your Enterprise solutions.";
   };
 
   return (
@@ -156,9 +163,9 @@ export const TabContent: React.FC<TabContentProps> = ({
           onOpenPerformance={onOpenPerformance}
           onOpenExport={() => toast.info("Data export is coming soon.")}
           onOpenHistory={() => toast.info("Translation history is coming soon.")}
-          onOpenComparePlans={() => setActiveTab('pricing')}
+          onOpenComparePlans={onOpenComparePlans}
           onOpenUpgradeNow={handleUpgrade}
-          onOpenEnterprise={() => toast.info("Please contact sales for enterprise plans.")}
+          onOpenEnterprise={handleContactSales}
         />
       </TabsContent>
 

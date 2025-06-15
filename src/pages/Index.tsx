@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { AnalyticsModal } from '@/components/analytics/AnalyticsModal';
 import { PerformanceModal } from '@/components/analytics/PerformanceModal';
 import { BillingModal } from '@/components/payment/BillingModal';
+import { ComparePlansModal } from '@/components/pricing/ComparePlansModal';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
@@ -29,6 +30,7 @@ const Index = () => {
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
   const [isPerformanceModalOpen, setIsPerformanceModalOpen] = useState(false);
   const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
+  const [isComparePlansModalOpen, setIsComparePlansModalOpen] = useState(false);
   const [agentProgress, setAgentProgress] = useState<Record<string, 'idle' | 'processing' | 'complete'>>({
     security: 'idle',
     prism: 'idle',
@@ -280,6 +282,7 @@ const Index = () => {
             onOpenAnalytics={() => setIsAnalyticsModalOpen(true)}
             onOpenPerformance={() => setIsPerformanceModalOpen(true)}
             onOpenBilling={() => setIsBillingModalOpen(true)}
+            onOpenComparePlans={() => setIsComparePlansModalOpen(true)}
           />
 
           {isAdmin && activeTab === "admin" && (
@@ -317,6 +320,7 @@ const Index = () => {
       <AnalyticsModal open={isAnalyticsModalOpen} onClose={() => setIsAnalyticsModalOpen(false)} />
       <PerformanceModal open={isPerformanceModalOpen} onClose={() => setIsPerformanceModalOpen(false)} />
       <BillingModal open={isBillingModalOpen} onClose={() => setIsBillingModalOpen(false)} user={user} />
+      <ComparePlansModal open={isComparePlansModalOpen} onClose={() => setIsComparePlansModalOpen(false)} />
 
       <LyraOverlay />
     </div>

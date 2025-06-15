@@ -2,6 +2,8 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { BarChart2 } from "lucide-react";
+import { AnalyticsCharts } from './AnalyticsCharts';
+import { Button } from "../ui/button";
 
 interface AnalyticsModalProps {
   open: boolean;
@@ -10,25 +12,19 @@ interface AnalyticsModalProps {
 
 export const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ open, onClose }) => (
   <Dialog open={open} onOpenChange={v => !v && onClose()}>
-    <DialogContent className="max-w-lg">
+    <DialogContent className="max-w-3xl bg-gradient-to-br from-black/95 via-purple-900/20 to-blue-900/10 backdrop-blur-xl border-purple-500/30 text-white">
       <DialogHeader>
-        <DialogTitle>
+        <DialogTitle className="flex items-center space-x-2">
           <BarChart2 className="w-5 h-5 inline-block mr-2" />
-          Usage Analytics
+          <span>Advanced Usage Analytics</span>
         </DialogTitle>
-        <DialogDescription>Here's an overview of your recent neural translation activity:</DialogDescription>
+        <DialogDescription className="text-purple-300/70">Here's a professional overview of your translation activity.</DialogDescription>
       </DialogHeader>
-      <div className="my-4">
-        <div className="text-lg font-bold text-white">Statistics (Demo)</div>
-        <ul className="text-blue-200 space-y-1 mt-2">
-          <li><span className="font-bold">Words Translated:</span> 5,200 this month</li>
-          <li><span className="font-bold">Unique Languages Used:</span> 8</li>
-          <li><span className="font-bold">Longest Streak:</span> 19 days</li>
-          <li><span className="font-bold">Peak Day:</span> Friday</li>
-        </ul>
+      <div className="max-h-[70vh] overflow-y-auto pr-4 my-4">
+        <AnalyticsCharts />
       </div>
       <DialogClose asChild>
-        <button className="w-full py-2 mt-2 rounded bg-blue-700 text-white font-semibold">Close</button>
+        <Button variant="outline" className="mt-4">Close</Button>
       </DialogClose>
     </DialogContent>
   </Dialog>
