@@ -24,6 +24,7 @@ import { AnalyticsModal } from "@/components/analytics/AnalyticsModal";
 import { ExportDataModal } from "@/components/analytics/ExportDataModal";
 import { PerformanceModal } from "@/components/analytics/PerformanceModal";
 import { HistoryModal } from "@/components/analytics/HistoryModal";
+import { ComparePlansModal } from "@/components/pricing/ComparePlansModal";
 
 interface TabContentProps {
   // Translation props
@@ -112,6 +113,36 @@ export const TabContent: React.FC<TabContentProps> = ({
   const [isComparePlansOpen, setIsComparePlansOpen] = useState(false);
   const [isUpgradeNowOpen, setIsUpgradeNowOpen] = useState(false);
   const [isEnterpriseOpen, setIsEnterpriseOpen] = useState(false);
+
+  const handleUpgrade = async (priceId: string) => {
+    if (!user) {
+      toast.error("Please log in to upgrade your plan.");
+      onOpenAuthModal();
+      return;
+    }
+
+    const toastId = toast.loading("Creating checkout session...");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { priceId },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data.url) {
+        toast.success("Redirecting to Stripe...", { id: toastId });
+        window.location.href = data.url;
+      } else {
+        throw new Error("Could not create Stripe checkout session.");
+      }
+    } catch (error: any) {
+      toast.error(`Error: ${error.message}`, { id: toastId });
+      console.error('Error creating checkout session:', error);
+    }
+  };
   
   return (
     <>
@@ -651,22 +682,25 @@ export const TabContent: React.FC<TabContentProps> = ({
       <ExportDataModal open={isExportOpen} onClose={() => setIsExportOpen(false)} />
       <PerformanceModal open={isPerformanceOpen} onClose={() => setIsPerformanceOpen(false)} />
       <HistoryModal open={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
+      <ComparePlansModal open={isComparePlansOpen} onClose={() => setIsComparePlansOpen(false)} />
 
-      <SimpleModal open={isComparePlansOpen} title="Compare Plans" onClose={() => setIsComparePlansOpen(false)}>
-        <p className="mb-4">Full plan comparison table coming soon!</p>
-        <ul className="list-disc mb-3 pl-6">
-          <li>See which features are included in Free, Pro, Premium, Business, and Enterprise tiers.</li>
-          <li>Choose the plan that fits your needs.</li>
-        </ul>
-      </SimpleModal>
       <SimpleModal open={isUpgradeNowOpen} title="Upgrade Now" onClose={() => setIsUpgradeNowOpen(false)}>
         <p className="mb-4">Click below to get instant Premium activation:</p>
-        <Button className="w-full bg-green-600 hover:bg-green-700">Upgrade to Premium</Button>
+        <Button 
+          onClick={() => handleUpgrade('price_1RWSoEEEqiDDPmsdpJwiiWgv')} 
+          className="w-full bg-green-600 hover:bg-green-700"
+        >
+          Upgrade to Premium
+        </Button>
       </SimpleModal>
       <SimpleModal open={isEnterpriseOpen} title="Enterprise Solutions" onClose={() => setIsEnterpriseOpen(false)}>
         <p className="mb-4">Ready for a custom plan, white-label, or AI integration?</p>
-        <Button className="w-full bg-blue-600 hover:bg-blue-700 mb-2">Contact Sales</Button>
-        <Button variant="outline" className="w-full">Get Enterprise Quote</Button>
+        <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 mb-2">
+          <a href="mailto:cleanasawhistle1000@gmail.com?subject=Enterprise%20Plan%20Inquiry">Contact Sales</a>
+        </Button>
+        <Button asChild variant="outline" className="w-full">
+          <a href="mailto:cleanasawhistle1000@gmail.com?subject=Enterprise%20Quote%20Request">Get Enterprise Quote</a>
+        </Button>
       </SimpleModal>
     </>
   );
