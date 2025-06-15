@@ -1,14 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone, Shield, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Mail, Phone, Shield, Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { PasswordStrengthMeter } from '@/components/ui/password-strength-meter';
+import { checkPasswordStrength, checkPasswordLeak } from '@/lib/password-security';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -31,6 +33,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     lastName: ''
   });
 
+  // Password security state
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, feedback: [], isStrong: false });
+  const [isLeaked, setIsLeaked] = useState<boolean | undefined>(undefined);
+  const [isCheckingLeak, setIsCheckingLeak] = useState(false);
+  const [leakCheckTimeout, setLeakCheckTimeout] = useState<NodeJS.Timeout | null>(null);
+
   // Helper function to mask phone numbers for security
   const maskPhoneNumber = (phone: string) => {
     if (phone.length <= 2) return phone;
@@ -39,12 +47,59 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     return masked + lastTwo;
   };
 
+  // Debounced password leak check
+  const checkForLeaks = useCallback(async (password: string) => {
+    if (password.length < 6) {
+      setIsLeaked(undefined);
+      return;
+    }
+
+    setIsCheckingLeak(true);
+    const result = await checkPasswordLeak(password);
+    setIsLeaked(result.isLeaked);
+    setIsCheckingLeak(false);
+  }, []);
+
+  // Handle password change with strength checking and leak detection
+  const handlePasswordChange = (password: string) => {
+    setFormData(prev => ({ ...prev, password }));
+    
+    // Check password strength immediately
+    const strength = checkPasswordStrength(password);
+    setPasswordStrength(strength);
+    
+    // Debounce leak checking
+    if (leakCheckTimeout) {
+      clearTimeout(leakCheckTimeout);
+    }
+    
+    if (password.length >= 6) {
+      const timeout = setTimeout(() => {
+        checkForLeaks(password);
+      }, 500);
+      setLeakCheckTimeout(timeout);
+    } else {
+      setIsLeaked(undefined);
+      setIsCheckingLeak(false);
+    }
+  };
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (leakCheckTimeout) {
+        clearTimeout(leakCheckTimeout);
+      }
+    };
+  }, [leakCheckTimeout]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       if (currentMode) {
+        // Login flow - no password validation needed
         const { data, error } = await supabase.auth.signInWithPassword({
           email: authMethod === 'email' ? formData.email : formData.phone,
           password: formData.password
@@ -60,8 +115,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         onAuthSuccess();
         onClose();
       } else {
+        // Sign up flow - validate password security
         if (formData.password !== formData.confirmPassword) {
           throw new Error("Passwords don't match");
+        }
+
+        // Check password strength
+        if (!passwordStrength.isStrong) {
+          throw new Error("Please create a stronger password following the requirements above");
+        }
+
+        // Check for leaked password
+        if (isLeaked) {
+          throw new Error("This password has been compromised in data breaches. Please choose a different password.");
+        }
+
+        // If still checking for leaks, wait a moment
+        if (isCheckingLeak) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          if (isLeaked) {
+            throw new Error("This password has been compromised in data breaches. Please choose a different password.");
+          }
         }
 
         // Use the current page URL as the redirect
@@ -274,7 +348,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Create a strong password"
                         value={formData.password}
-                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                        onChange={(e) => handlePasswordChange(e.target.value)}
                         required
                       />
                       <Button
@@ -287,6 +361,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
+                    
+                    {/* Password Strength Meter */}
+                    {formData.password && (
+                      <div className="mt-3">
+                        <PasswordStrengthMeter
+                          score={passwordStrength.score}
+                          feedback={passwordStrength.feedback}
+                          isLeaked={isLeaked}
+                          isCheckingLeak={isCheckingLeak}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -299,9 +385,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                       onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                       required
                     />
+                    {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                      <div className="flex items-center space-x-2 text-sm text-red-400 mt-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        <span>Passwords do not match</span>
+                      </div>
+                    )}
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={isLoading || !passwordStrength.isStrong || isLeaked || isCheckingLeak}
+                  >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Account
                   </Button>
