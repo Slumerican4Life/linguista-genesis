@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ interface SettingsPanelProps {
   onOpenPreferences: () => void;
   onOpenSecurity: () => void;
   onOpenBilling: () => void;
+  onManageSubscription: () => void;
   onOpenAnalytics: () => void;
   onOpenExport: () => void;
   onOpenPerformance: () => void;
@@ -24,6 +26,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onOpenPreferences,
   onOpenSecurity,
   onOpenBilling,
+  onManageSubscription,
   onOpenAnalytics,
   onOpenExport,
   onOpenPerformance,
@@ -80,7 +83,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <Button onClick={onOpenBilling} className="w-full bg-green-600 hover:bg-green-700 mb-2">
             <DollarSign className="w-4 h-4 mr-2" />View Bills
           </Button>
-          <Button onClick={onOpenBilling} variant="outline" className="w-full">
+          <Button onClick={onManageSubscription} variant="outline" className="w-full">
             <Edit className="w-4 h-4 mr-2" />Update Payment
           </Button>
         </CardContent>

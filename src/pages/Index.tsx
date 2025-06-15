@@ -12,6 +12,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { AnalyticsModal } from '@/components/analytics/AnalyticsModal';
+import { PerformanceModal } from '@/components/analytics/PerformanceModal';
+import { BillingModal } from '@/components/payment/BillingModal';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
@@ -23,6 +26,9 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
+  const [isPerformanceModalOpen, setIsPerformanceModalOpen] = useState(false);
+  const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
   const [agentProgress, setAgentProgress] = useState<Record<string, 'idle' | 'processing' | 'complete'>>({
     security: 'idle',
     prism: 'idle',
@@ -271,6 +277,9 @@ const Index = () => {
             onSelectPlan={handleSelectPlan}
             onOpenAuthModal={() => handleOpenAuthModal(false)}
             setActiveTab={setActiveTab}
+            onOpenAnalytics={() => setIsAnalyticsModalOpen(true)}
+            onOpenPerformance={() => setIsPerformanceModalOpen(true)}
+            onOpenBilling={() => setIsBillingModalOpen(true)}
           />
 
           {isAdmin && activeTab === "admin" && (
@@ -304,6 +313,10 @@ const Index = () => {
         onAuthSuccess={handleAuthSuccess}
         isLogin={!isSignUp}
       />
+
+      <AnalyticsModal open={isAnalyticsModalOpen} onClose={() => setIsAnalyticsModalOpen(false)} />
+      <PerformanceModal open={isPerformanceModalOpen} onClose={() => setIsPerformanceModalOpen(false)} />
+      <BillingModal open={isBillingModalOpen} onClose={() => setIsBillingModalOpen(false)} user={user} />
 
       <LyraOverlay />
     </div>

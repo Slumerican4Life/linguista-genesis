@@ -30,6 +30,9 @@ interface TabContentProps {
   onSelectPlan: (priceId: string) => void;
   onOpenAuthModal: () => void;
   setActiveTab: (tab: string) => void;
+  onOpenAnalytics: () => void;
+  onOpenPerformance: () => void;
+  onOpenBilling: () => void;
 }
 
 export const TabContent: React.FC<TabContentProps> = ({
@@ -50,7 +53,10 @@ export const TabContent: React.FC<TabContentProps> = ({
   isAdmin,
   onSelectPlan,
   onOpenAuthModal,
-  setActiveTab
+  setActiveTab,
+  onOpenAnalytics,
+  onOpenPerformance,
+  onOpenBilling,
 }) => {
   // Handle manage subscription
   const handleManageSubscription = async () => {
@@ -139,18 +145,20 @@ export const TabContent: React.FC<TabContentProps> = ({
       </TabsContent>
 
       <TabsContent value="settings" className="mt-8">
-        <SettingsPanel 
+        <SettingsPanel
           currentPlan={currentPlan}
           onUpgrade={handleUpgrade}
-          onManageSubscription={handleManageSubscription}
-          onSignOut={handleSignOut}
           onOpenPreferences={() => toast.info("Preferences are available inline.")}
           onOpenSecurity={() => toast.info("Security settings are available inline.")}
-          onOpenDeleteAccount={() => toast.error("Account deletion is not available via the UI. Please contact support.")}
-          onUpdateProfile={async () => toast.info("Profile update not implemented yet.")}
-          onUpdatePassword={async () => toast.info("Password update not implemented yet.")}
-          isUpdatingProfile={false}
-          isUpdatingPassword={false}
+          onOpenBilling={onOpenBilling}
+          onManageSubscription={handleManageSubscription}
+          onOpenAnalytics={onOpenAnalytics}
+          onOpenPerformance={onOpenPerformance}
+          onOpenExport={() => toast.info("Data export is coming soon.")}
+          onOpenHistory={() => toast.info("Translation history is coming soon.")}
+          onOpenComparePlans={() => setActiveTab('pricing')}
+          onOpenUpgradeNow={onUpgrade}
+          onOpenEnterprise={() => toast.info("Please contact sales for enterprise plans.")}
         />
       </TabsContent>
 
