@@ -227,17 +227,41 @@ const Index = () => {
   // Free tier ads component (only show for free users)
   const AdBanner = ({ position }: { position: 'top' | 'middle' | 'bottom' }) => {
     if (!user || currentPlan !== 'free') return null;
+
+    let adContent: React.ReactNode;
+    switch (position) {
+      case 'top':
+        adContent = (
+          <div className="text-center">
+            <p className="font-bold text-lg text-white">Sumerican Slang</p>
+            <p className="text-sm text-purple-300">inspired by yelawolf</p>
+          </div>
+        );
+        break;
+      case 'middle':
+        adContent = (
+          <p className="font-bold text-lg text-center text-white">the losers win again.</p>
+        );
+        break;
+      case 'bottom':
+        adContent = (
+          <p className="font-bold text-lg text-center text-white">better take a left mf.</p>
+        );
+        break;
+      default:
+        adContent = null;
+    }
     
     return (
       <div className={`${
         position === 'top' ? 'mb-8' : position === 'middle' ? 'my-8' : 'mt-8'
       }`}>
-        <AdSenseAd
-          adSlot="1234567890" // Replace with your actual ad slot ID
-          adFormat="auto"
-          className="max-w-full"
-          style={{ minHeight: '100px', backgroundColor: '#1a1a1a', border: '1px solid #3b82f6' }}
-        />
+        <div
+          className="max-w-full p-4 rounded-lg flex items-center justify-center"
+          style={{ minHeight: '100px', backgroundColor: '#1a1a1a', border: '1px dashed #4f46e5' }}
+        >
+          {adContent}
+        </div>
       </div>
     );
   };
@@ -286,7 +310,7 @@ const Index = () => {
                 <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center border-3 border-white/30 animate-bounce shadow-2xl">
                   <span className="text-lg">🧠</span>
                 </div>
-                <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white/20 animate-pulse"></div>
+                <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white/40 animate-pulse"></div>
               </div>
 
               {/* Enhanced Brand Identity */}

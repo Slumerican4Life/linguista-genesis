@@ -134,9 +134,9 @@ export const LyraOverlay = () => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)]" style={{ pointerEvents: "auto" }}>
-      <Card className={`border border-purple-500/30 bg-black/95 backdrop-blur-xl shadow-2xl transition-all duration-300 ${
-        isMinimized ? 'h-16' : 'h-auto'
+    <div className="fixed bottom-8 right-8 z-50 w-96 max-w-[calc(100vw-4rem)] max-h-[calc(100vh-5rem)]" style={{ pointerEvents: "auto" }}>
+      <Card className={`border border-purple-500/30 bg-black/95 backdrop-blur-xl shadow-2xl transition-all duration-300 flex flex-col ${
+        isMinimized ? 'h-16' : 'h-full'
       }`}>
         <CardHeader className="bg-gradient-to-r from-purple-700/90 via-blue-700/90 to-indigo-700/90 rounded-t-lg border-b border-purple-500/30 pb-3 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
@@ -213,8 +213,8 @@ export const LyraOverlay = () => {
               </div>
             )}
 
-            <CardContent className="p-0">
-              <div className="h-80 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-black/60 via-purple-900/10 to-blue-900/10 backdrop-blur-sm">
+            <CardContent className="p-0 flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-black/60 via-purple-900/10 to-blue-900/10 backdrop-blur-sm">
                 {messages.map((message) => (
                   <div
                     key={message.id}
