@@ -207,8 +207,6 @@ const Index = () => {
     setIsAuthModalOpen(true);
   };
 
-  const isAdmin = userProfile?.role === 'owner' || userProfile?.role === 'manager';
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/40 to-blue-950/30 relative overflow-hidden">
       <AppBackground />
@@ -248,8 +246,6 @@ const Index = () => {
             onSelectPlan={handleSelectPlan}
             onOpenAuthModal={() => handleOpenAuthModal(false)}
             setActiveTab={setActiveTab}
-            // NEW: Pass isCreator to TabContent
-            isCreator={isCreator}
           />
 
           {isAdmin && activeTab === "admin" && (
@@ -270,7 +266,6 @@ const Index = () => {
               {/* No admin UI for all others */}
             </div>
           )}
-
 
           <AdBanner position="middle" user={user} currentPlan={currentPlan} />
         </Tabs>
