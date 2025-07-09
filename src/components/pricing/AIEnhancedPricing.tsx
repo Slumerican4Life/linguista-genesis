@@ -1,235 +1,124 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Zap, Crown, Rocket, Check, Star, TrendingUp } from 'lucide-react';
-import { toast } from 'sonner';
+import { Check, Star, Zap, Crown, Building } from 'lucide-react';
 
-export const AIEnhancedPricing: React.FC = () => {
-  const [isAnnual, setIsAnnual] = useState(false);
+interface AIEnhancedPricingProps {
+  onSelectPlan: (priceId: string) => void;
+  currentPlan?: string;
+}
 
-  const plans = [
+export const AIEnhancedPricing: React.FC<AIEnhancedPricingProps> = ({
+  onSelectPlan,
+  currentPlan = 'free'
+}) => {
+  const pricingTiers = [
     {
-      name: "Starter",
-      icon: <Zap className="w-6 h-6 text-blue-400" />,
-      price: { monthly: 9, annual: 89 },
-      description: "Perfect for individuals and small projects",
-      features: [
-        "50,000 words/month",
-        "25+ languages",
-        "Basic AI translation",
-        "Standard support",
-        "Web dashboard access",
-        "API access (100 calls/day)"
-      ],
-      badge: null,
-      color: "from-blue-600 to-cyan-600",
-      borderColor: "border-blue-500/30"
+      id: 'professional',
+      name: 'Professional',
+      originalPrice: 199.99,
+      discountedPrice: 185,
+      priceId: 'price_professional_yearly',
+      icon: <Zap className="w-6 h-6" />,
+      features: ['1 Website', '10,000 words/month', '10 languages', 'Basic AI agents']
     },
     {
-      name: "Professional",
-      icon: <Brain className="w-6 h-6 text-purple-400" />,
-      price: { monthly: 29, annual: 299 },
-      description: "Advanced AI features for growing businesses",
-      features: [
-        "200,000 words/month",
-        "50+ languages",
-        "Advanced AI translation",
-        "Priority support",
-        "Team collaboration",
-        "API access (1,000 calls/day)",
-        "Custom tone settings",
-        "Translation memory",
-        "Quality scoring"
-      ],
-      badge: "Most Popular",
-      color: "from-purple-600 to-pink-600",
-      borderColor: "border-purple-500/50"
+      id: 'premium',
+      name: 'Premium',
+      originalPrice: 299.99,
+      discountedPrice: 225,
+      priceId: 'price_premium_yearly',
+      icon: <Star className="w-6 h-6" />,
+      popular: true,
+      features: ['2 Websites', '50,000 words/month', '25 languages', 'Enhanced AI + Urban Dictionary']
     },
     {
-      name: "Enterprise",
-      icon: <Crown className="w-6 h-6 text-yellow-400" />,
-      price: { monthly: 99, annual: 999 },
-      description: "Maximum AI power for large organizations",
-      features: [
-        "1,000,000 words/month",
-        "100+ languages",
-        "Neural AI translation",
-        "24/7 premium support",
-        "Advanced team features",
-        "Unlimited API access",
-        "Custom AI training",
-        "White-label solution",
-        "SLA guarantee",
-        "Custom integrations",
-        "Dedicated AI instance"
-      ],
-      badge: "Best Value",
-      color: "from-yellow-600 to-orange-600",
-      borderColor: "border-yellow-500/50"
+      id: 'business',
+      name: 'Business',
+      originalPrice: 599.99,
+      discountedPrice: 400,
+      priceId: 'price_business_yearly',
+      icon: <Building className="w-6 h-6" />,
+      features: ['Unlimited websites', '200,000 words/month', '50+ languages', 'All AI agents + Lyra']
     }
   ];
-
-  const aiFeatures = [
-    {
-      icon: <Brain className="w-5 h-5 text-purple-400" />,
-      title: "Neural Translation Engine",
-      description: "Advanced AI models trained on 100B+ translations"
-    },
-    {
-      icon: <TrendingUp className="w-5 h-5 text-green-400" />,
-      title: "Smart Optimization",
-      description: "AI learns from your content to improve over time"
-    },
-    {
-      icon: <Star className="w-5 h-5 text-yellow-400" />,
-      title: "Quality Intelligence",
-      description: "Real-time AI scoring and quality recommendations"
-    },
-    {
-      icon: <Rocket className="w-5 h-5 text-blue-400" />,
-      title: "Instant Processing",
-      description: "Lightning-fast AI processing with 99.9% uptime"
-    }
-  ];
-
-  const handleUpgrade = (planName: string) => {
-    toast.success(`🚀 Upgrading to ${planName} plan! Redirecting to payment...`);
-    // Add actual payment integration here
-  };
 
   return (
     <div className="space-y-8">
-      {/* AI Features Header */}
-      <Card className="border-purple-500/30 bg-gradient-to-br from-black/80 to-purple-900/20 backdrop-blur-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="flex items-center justify-center space-x-3 text-purple-100 text-3xl">
-            <Brain className="w-8 h-8 text-purple-400" />
-            <span>AI-Powered Translation Plans</span>
-          </CardTitle>
-          <CardDescription className="text-purple-200 text-lg">
-            Choose the perfect AI translation package for your needs
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {aiFeatures.map((feature, index) => (
-              <div key={index} className="text-center p-4 bg-black/40 rounded-lg border border-purple-500/20">
-                <div className="flex justify-center mb-3">{feature.icon}</div>
-                <h3 className="font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-sm text-purple-200">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Billing Toggle */}
-      <div className="flex justify-center">
-        <div className="bg-black/60 p-1 rounded-lg border border-purple-500/30">
-          <button
-            onClick={() => setIsAnnual(false)}
-            className={`px-4 py-2 rounded-md transition-all ${
-              !isAnnual 
-                ? 'bg-purple-600 text-white' 
-                : 'text-purple-200 hover:text-white'
-            }`}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setIsAnnual(true)}
-            className={`px-4 py-2 rounded-md transition-all ${
-              isAnnual 
-                ? 'bg-purple-600 text-white' 
-                : 'text-purple-200 hover:text-white'
-            }`}
-          >
-            Annual
-            <Badge className="ml-2 bg-green-600 text-white">Save 17%</Badge>
-          </button>
-        </div>
+      <div className="text-center space-y-4">
+        <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-300 via-blue-300 to-green-300 bg-clip-text text-transparent">
+          Choose Your AI Translation Plan
+        </h2>
+        <Badge variant="outline" className="border-green-500 text-green-300 bg-green-900/20 px-4 py-2">
+          <Crown className="w-4 h-4 mr-2" />
+          50% Money-Back Guarantee
+        </Badge>
       </div>
 
-      {/* Pricing Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((plan, index) => (
-          <Card 
-            key={index} 
-            className={`${plan.borderColor} bg-gradient-to-br from-black/80 to-gray-900/40 backdrop-blur-lg relative ${
-              plan.badge ? 'ring-2 ring-purple-500/50' : ''
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        {pricingTiers.map((tier) => (
+          <Card
+            key={tier.id}
+            className={`relative border-2 transition-all duration-300 hover:scale-105 ${
+              tier.popular
+                ? 'border-purple-500 bg-gradient-to-br from-purple-900/40 to-blue-900/40'
+                : 'border-purple-500/30 bg-gradient-to-br from-black/80 to-purple-900/20'
             }`}
           >
-            {plan.badge && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-purple-600 text-white px-4 py-1">
-                  {plan.badge}
+            {tier.popular && (
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+                  Most Popular
                 </Badge>
               </div>
             )}
-            
+
             <CardHeader className="text-center">
-              <div className="flex justify-center mb-3">{plan.icon}</div>
-              <CardTitle className="text-white text-xl">{plan.name}</CardTitle>
-              <CardDescription className="text-gray-300">{plan.description}</CardDescription>
-              
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-white">
-                  ${isAnnual ? plan.price.annual : plan.price.monthly}
-                </span>
-                <span className="text-gray-400">
-                  /{isAnnual ? 'year' : 'month'}
-                </span>
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <div className="p-2 rounded-full bg-purple-600">{tier.icon}</div>
+                <CardTitle className="text-2xl font-bold text-purple-100">{tier.name}</CardTitle>
               </div>
               
-              {isAnnual && (
-                <p className="text-green-400 text-sm">
-                  Save ${(plan.price.monthly * 12) - plan.price.annual}/year
-                </p>
-              )}
+              <div className="space-y-2">
+                <div className="flex items-center justify-center space-x-2">
+                  <span className="text-lg text-gray-400 line-through">${tier.originalPrice}</span>
+                  <Badge variant="outline" className="border-red-500 text-red-300">
+                    Save ${tier.originalPrice - tier.discountedPrice}
+                  </Badge>
+                </div>
+                <div className="text-4xl font-bold text-white">${tier.discountedPrice}/year</div>
+              </div>
             </CardHeader>
-            
-            <CardContent className="space-y-4">
-              <ul className="space-y-2">
-                {plan.features.map((feature, featureIndex) => (
-                  <li key={featureIndex} className="flex items-center space-x-2">
-                    <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">{feature}</span>
+
+            <CardContent className="space-y-6">
+              <ul className="space-y-3">
+                {tier.features.map((feature, index) => (
+                  <li key={index} className="flex items-start space-x-3">
+                    <Check className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+                    <span className="text-purple-200 text-sm">{feature}</span>
                   </li>
                 ))}
               </ul>
-              
-              <Button 
-                onClick={() => handleUpgrade(plan.name)}
-                className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white font-semibold py-3`}
+
+              <Button
+                onClick={() => onSelectPlan(tier.priceId)}
+                disabled={currentPlan === tier.id}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
               >
-                <Rocket className="w-4 h-4 mr-2" />
-                Upgrade to {plan.name}
+                {currentPlan === tier.id ? 'Current Plan' : `Choose ${tier.name}`}
               </Button>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* AI Enhancement Notice */}
-      <Card className="border-green-500/30 bg-gradient-to-br from-black/80 to-green-900/20 backdrop-blur-lg">
-        <CardContent className="p-6 text-center">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <Brain className="w-6 h-6 text-green-400" />
-            <h3 className="text-xl font-bold text-green-100">AI-Enhanced Translation Quality</h3>
-          </div>
-          <p className="text-green-200 mb-4">
-            All plans include our advanced neural translation engine with continuous AI learning and optimization.
-          </p>
-          <div className="flex justify-center space-x-6 text-sm text-green-300">
-            <span>✨ 98.7% Accuracy</span>
-            <span>⚡ Sub-second Processing</span>
-            <span>🧠 Self-Improving AI</span>
-            <span>🌍 100+ Languages</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-center p-6 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-lg">
+        <p className="text-blue-100 text-sm">
+          ⚠️ AI Experimentation Notice: Our service uses experimental AI with 50% money-back guarantee. 
+          Results may vary. Dictionary APIs and Urban Dictionary integration included.
+        </p>
+      </div>
     </div>
   );
 };

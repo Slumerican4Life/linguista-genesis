@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { X, Globe, Languages, Eye, Zap, RefreshCw } from "lucide-react";
+import { X, Globe, Languages, Eye, Zap, RefreshCw, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { WebsiteTranslationEditor } from './WebsiteTranslationEditor';
 
 interface MaskedPreviewOverlayProps {
   url: string;
@@ -70,6 +71,7 @@ export const MaskedPreviewOverlay: React.FC<MaskedPreviewOverlayProps> = ({
   );
   const [loading, setLoading] = useState(false);
   const [demonstrationMode, setDemonstrationMode] = useState(true);
+  const [showEditor, setShowEditor] = useState(false);
 
   // Mock website content for demonstration
   const mockWebsiteContent = {
@@ -140,6 +142,14 @@ export const MaskedPreviewOverlay: React.FC<MaskedPreviewOverlayProps> = ({
               <Zap className="w-4 h-4 inline mr-1" />
               Neural AI Translation Active
             </div>
+            <Button
+              size="sm"
+              onClick={() => setShowEditor(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            >
+              <Edit3 className="w-4 h-4 mr-2" />
+              Edit Translation
+            </Button>
           </div>
           <div className="text-xs text-purple-400 font-mono">
             Source: {url}
@@ -249,6 +259,16 @@ export const MaskedPreviewOverlay: React.FC<MaskedPreviewOverlayProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Website Translation Editor */}
+      {showEditor && (
+        <WebsiteTranslationEditor
+          projectId="demo-project"
+          websiteUrl={url}
+          targetLanguage={selectedLang}
+          onClose={() => setShowEditor(false)}
+        />
+      )}
     </div>
   );
 };
