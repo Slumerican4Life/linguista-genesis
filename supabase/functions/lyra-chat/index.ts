@@ -15,9 +15,16 @@ serve(async (req) => {
   try {
     const { message, conversationHistory = [] } = await req.json()
     
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
+    // Try multiple OpenAI API key environment variables
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY') || 
+                         Deno.env.get('Lyra-linguista-openai-api-key') ||
+                         Deno.env.get('LYRA_LINGUISTA_OPENAI_API_KEY')
+    
+    console.log('Available env keys:', Object.keys(Deno.env.toObject()).filter(k => k.toLowerCase().includes('openai')))
+    
     if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured')
+      console.error('No OpenAI API key found in environment variables')
+      throw new Error('OpenAI API key not configured - please check Supabase edge function secrets')
     }
 
     // Initialize Supabase client
@@ -126,6 +133,7 @@ When selling, be confident about Linguista's superiority over Google Translate, 
     ]
 
     console.log('Sending request to OpenAI with enhanced knowledge base')
+    console.log('Using OpenAI key ending with:', openaiApiKey.slice(-4))
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -178,13 +186,30 @@ When selling, be confident about Linguista's superiority over Google Translate, 
 
   } catch (error) {
     console.error('Error in lyra-chat function:', error)
+    
+    // Provide more specific error messages
+    let userMessage = 'I apologize, but I\'m having trouble connecting right now.'
+    let statusCode = 500
+    
+    if (error.message.includes('API key not configured')) {
+      userMessage = 'The AI service needs to be configured. Please contact support.'
+      statusCode = 503
+    } else if (error.message.includes('429') || error.message.includes('quota')) {
+      userMessage = 'I\'m experiencing high demand right now. Please try again in a few minutes.'
+      statusCode = 429
+    } else if (error.message.includes('401') || error.message.includes('authentication')) {
+      userMessage = 'There\'s an authentication issue with the AI service. Please contact support.'
+      statusCode = 401
+    }
+    
     return new Response(
       JSON.stringify({ 
         error: 'Failed to process chat request',
-        details: error.message 
+        details: error.message,
+        userMessage: userMessage
       }),
       { 
-        status: 500,
+        status: statusCode,
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 

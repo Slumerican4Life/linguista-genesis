@@ -70,28 +70,41 @@ export const LyraOverlay = () => {
         throw error;
       }
 
+      if (!data?.response) {
+        console.error('No response from Lyra service:', data);
+        throw new Error('No response received from AI service');
+      }
+
       const lyraMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || "I apologize, but I'm having trouble processing your request. The AI service may be temporarily unavailable. Please try again in a moment.",
+        text: data.response,
         sender: 'lyra',
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, lyraMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
       
-      let errorMessage = "I apologize, but I'm having trouble connecting right now. This might be due to API quota limits or temporary service issues.";
+      let errorMessage = "I apologize, but I'm having trouble connecting right now. This might be due to API configuration or service issues.";
+      let toastMessage = 'Lyra messaging temporarily unavailable';
       
-      if (error && typeof error === 'object' && 'message' in error) {
-        if (error.message.includes('quota') || error.message.includes('429')) {
-          errorMessage = "I'm currently experiencing high demand. The AI service quota may be temporarily exceeded. Please try again in a few minutes.";
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = "There seems to be a network connection issue. Please check your internet connection and try again.";
-        }
+      // Handle different error types
+      if (error?.message?.includes('No response received')) {
+        errorMessage = "I received your message but couldn't generate a response. Please try again.";
+        toastMessage = 'No response from AI service';
+      } else if (error?.message?.includes('quota') || error?.message?.includes('429')) {
+        errorMessage = "I'm currently experiencing high demand. Please try again in a few minutes.";
+        toastMessage = 'High demand - please retry';
+      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
+        errorMessage = "There seems to be a network connection issue. Please check your internet connection and try again.";
+        toastMessage = 'Network connection issue';
+      } else if (error?.message?.includes('API key') || error?.message?.includes('authentication')) {
+        errorMessage = "The AI service needs to be configured. Please contact support if this persists.";
+        toastMessage = 'Configuration issue';
       }
       
-      toast.error('Lyra messaging temporarily unavailable');
+      toast.error(toastMessage);
       
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
