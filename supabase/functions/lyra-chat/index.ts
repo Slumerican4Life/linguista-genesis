@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     const { message, conversationHistory = [] } = await req.json()
     
-    const openaiApiKey = Deno.env.get('Lyra-linguista-openai-api-key')
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiApiKey) {
       throw new Error('OpenAI API key not configured')
     }
