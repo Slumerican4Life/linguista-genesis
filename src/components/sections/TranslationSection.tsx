@@ -54,7 +54,7 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
         <CardContent className="space-y-8">
           {/* Input Section */}
           <div className="space-y-4">
-            <label className="text-purple-200 font-semibold text-lg flex items-center space-x-2">
+            <label className="text-foreground font-semibold text-lg flex items-center space-x-2">
               <Sparkles className="w-5 h-5" />
               <span>Enter your text</span>
             </label>
@@ -62,22 +62,22 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
               placeholder="Type or paste your text here for AI-powered translation..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="min-h-[120px] bg-black/50 border-purple-500/50 text-white placeholder-purple-300/70 text-lg focus:border-purple-400 focus:ring-purple-400/50 resize-none"
+              className="min-h-[120px] bg-background/50 border-border text-foreground placeholder-muted-foreground text-lg focus:border-primary focus:ring-ring resize-none"
             />
           </div>
 
           {/* Context Controls */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
-              <label className="text-purple-200 font-semibold flex items-center space-x-2">
+              <label className="text-foreground font-semibold flex items-center space-x-2">
                 <Globe className="w-4 h-4" />
                 <span>Content Domain</span>
               </label>
               <Select value={contentDomain} onValueChange={setContentDomain}>
-                <SelectTrigger className="bg-black/50 border-purple-500/50 text-white">
+                <SelectTrigger className="bg-background/50 border-border">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-black border-purple-500">
+                <SelectContent>
                   <SelectItem value="general">General</SelectItem>
                   <SelectItem value="business">Business</SelectItem>
                   <SelectItem value="technical">Technical</SelectItem>
@@ -90,15 +90,15 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
             </div>
 
             <div className="space-y-3">
-              <label className="text-purple-200 font-semibold flex items-center space-x-2">
+              <label className="text-foreground font-semibold flex items-center space-x-2">
                 <Brain className="w-4 h-4" />
                 <span>Cultural Context</span>
               </label>
               <Select value={culturalContext} onValueChange={setCulturalContext}>
-                <SelectTrigger className="bg-black/50 border-purple-500/50 text-white">
+                <SelectTrigger className="bg-background/50 border-border">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-black border-purple-500">
+                <SelectContent>
                   <SelectItem value="neutral">Neutral</SelectItem>
                   <SelectItem value="formal">Formal</SelectItem>
                   <SelectItem value="casual">Casual</SelectItem>
@@ -145,7 +145,7 @@ export const TranslationSection: React.FC<TranslationSectionProps> = ({
           {/* Plan Limitation Notice */}
           {currentPlan === 'free' && (
             <div className="text-center">
-              <Badge variant="outline" className="border-yellow-500 text-yellow-300 bg-yellow-900/20 px-4 py-2">
+              <Badge variant="outline" className="border-yellow-500 text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-300 px-4 py-2">
                 Free Plan: Limited to 3 languages and basic features
               </Badge>
             </div>

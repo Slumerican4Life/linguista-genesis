@@ -16,6 +16,7 @@ import { AnalyticsModal } from '@/components/analytics/AnalyticsModal';
 import { PerformanceModal } from '@/components/analytics/PerformanceModal';
 import { BillingModal } from '@/components/payment/BillingModal';
 import { ComparePlansModal } from '@/components/pricing/ComparePlansModal';
+import { autoDetectTargetLanguages, isAutoDetectionSupported } from '@/lib/language-detection';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
@@ -38,6 +39,16 @@ const Index = () => {
     voca: 'idle',
     lyra: 'idle'
   });
+
+  // Initialize auto-detection on first load if no languages selected
+  React.useEffect(() => {
+    if (selectedLanguages.length === 0 && isAutoDetectionSupported()) {
+      const autoLanguages = autoDetectTargetLanguages();
+      if (autoLanguages.length > 0) {
+        setSelectedLanguages(autoLanguages.slice(0, 2)); // Start with top 2 detected languages
+      }
+    }
+  }, []); // Only run on initial mount
 
   // Enhanced authentication handling with better session management
   useEffect(() => {

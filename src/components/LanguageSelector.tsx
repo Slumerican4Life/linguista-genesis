@@ -4,7 +4,13 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { X, Plus, Globe } from 'lucide-react';
+import { X, Plus, Globe, Zap, Eye, AlertCircle } from 'lucide-react';
+import { 
+  detectBrowserLanguages, 
+  autoDetectTargetLanguages, 
+  isAutoDetectionSupported,
+  getPrimaryLanguage 
+} from '@/lib/language-detection';
 
 interface LanguageSelectorProps {
   selectedLanguages: string[];
@@ -12,6 +18,7 @@ interface LanguageSelectorProps {
 }
 
 const popularLanguages = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'es', name: 'Spanish', flag: '🇪🇸' },
   { code: 'fr', name: 'French', flag: '🇫🇷' },
   { code: 'de', name: 'German', flag: '🇩🇪' },
@@ -22,12 +29,12 @@ const popularLanguages = [
   { code: 'ko', name: 'Korean', flag: '🇰🇷' },
   { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
   { code: 'ar', name: 'Arabic', flag: '🇸🇦' },
-  { code: 'hi', name: 'Hindi', flag: '🇮🇳' },
-  { code: 'th', name: 'Thai', flag: '🇹🇭' }
+  { code: 'hi', name: 'Hindi', flag: '🇮🇳' }
 ];
 
 const allLanguages = [
   ...popularLanguages,
+  { code: 'th', name: 'Thai', flag: '🇹🇭' },
   { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
   { code: 'sv', name: 'Swedish', flag: '🇸🇪' },
   { code: 'no', name: 'Norwegian', flag: '🇳🇴' },
@@ -70,6 +77,14 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   onLanguageChange
 }) => {
   const [showAll, setShowAll] = React.useState(false);
+  const [showAutoDetection, setShowAutoDetection] = React.useState(false);
+  
+  // Auto-detection capabilities
+  const isAutoSupported = isAutoDetectionSupported();
+  const detectedLanguages = React.useMemo(() => {
+    return isAutoSupported ? detectBrowserLanguages() : [];
+  }, [isAutoSupported]);
+  const primaryLanguage = getPrimaryLanguage();
   
   const toggleLanguage = (langCode: string) => {
     if (selectedLanguages.includes(langCode)) {
@@ -89,6 +104,12 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     onLanguageChange(newLanguages);
   };
 
+  const addAutoDetected = () => {
+    const autoLanguages = autoDetectTargetLanguages();
+    const newLanguages = [...new Set([...selectedLanguages, ...autoLanguages])];
+    onLanguageChange(newLanguages);
+  };
+
   const displayLanguages = showAll ? allLanguages : popularLanguages;
 
   return (
@@ -98,7 +119,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           <Globe className="w-4 h-4" />
           <span>Target Languages ({selectedLanguages.length}/40)</span>
         </Label>
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap gap-2">
           {selectedLanguages.length > 0 && (
             <Button variant="outline" size="sm" onClick={clearAll}>
               Clear All
@@ -108,12 +129,27 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
             <Plus className="w-3 h-3 mr-1" />
             Add Popular
           </Button>
+          {isAutoSupported && (
+            <Button variant="outline" size="sm" onClick={addAutoDetected} className="bg-gradient-to-r from-primary/10 to-secondary/10">
+              <Zap className="w-3 h-3 mr-1" />
+              Auto-Detect
+            </Button>
+          )}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowAutoDetection(!showAutoDetection)}
+            className="text-xs"
+          >
+            <Eye className="w-3 h-3 mr-1" />
+            {showAutoDetection ? 'Hide' : 'Show'} Detection
+          </Button>
         </div>
       </div>
 
       {/* Selected Languages */}
       {selectedLanguages.length > 0 && (
-        <Card className="border-2 border-ai-blue-200 bg-ai-blue-50">
+        <Card className="border-2 border-primary/30 bg-primary/5">
           <CardContent className="p-4">
             <div className="flex flex-wrap gap-2">
               {selectedLanguages.map(langCode => {
@@ -122,15 +158,63 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                   <Badge
                     key={langCode}
                     variant="secondary"
-                    className="bg-ai-blue-100 text-ai-blue-800 hover:bg-ai-blue-200 cursor-pointer pr-1"
+                    className="bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer pr-1 transition-colors"
                     onClick={() => toggleLanguage(langCode)}
                   >
                     <span className="mr-1">{lang?.flag}</span>
                     {lang?.name}
-                    <X className="w-3 h-3 ml-1 hover:text-red-600" />
+                    <X className="w-3 h-3 ml-1 hover:text-destructive transition-colors" />
                   </Badge>
                 );
               })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Auto-Detection Info */}
+      {showAutoDetection && (
+        <Card className="border border-muted bg-muted/5">
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Zap className="w-4 h-4 text-primary" />
+                <Label className="text-sm font-medium">Auto-Detection Results</Label>
+              </div>
+              
+              {isAutoSupported ? (
+                <div className="space-y-2">
+                  {primaryLanguage && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Badge variant="outline" className="bg-primary/10">
+                        <span className="mr-1">{primaryLanguage.flag}</span>
+                        {primaryLanguage.name}
+                        <span className="ml-1 text-xs opacity-70">
+                          ({Math.round(primaryLanguage.confidence * 100)}%)
+                        </span>
+                      </Badge>
+                      <span className="text-muted-foreground">Primary detected language</span>
+                    </div>
+                  )}
+                  
+                  {detectedLanguages.length > 1 && (
+                    <div className="text-xs text-muted-foreground">
+                      Other detected: {detectedLanguages.slice(1, 3).map(lang => 
+                        `${lang.flag} ${lang.name}`
+                      ).join(', ')}
+                    </div>
+                  )}
+                  
+                  <div className="text-xs text-muted-foreground">
+                    Auto-detection reads your browser's language preferences to suggest relevant target languages.
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Auto-detection not supported in this browser</span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -145,10 +229,10 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
               variant={selectedLanguages.includes(lang.code) ? "default" : "outline"}
               size="sm"
               onClick={() => toggleLanguage(lang.code)}
-              className={`justify-start h-10 ${
+              className={`justify-start h-10 transition-colors ${
                 selectedLanguages.includes(lang.code)
-                  ? 'bg-ai-blue-500 hover:bg-ai-blue-600 text-white'
-                  : 'hover:bg-ai-blue-50'
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                  : 'hover:bg-muted'
               }`}
               disabled={selectedLanguages.length >= 40 && !selectedLanguages.includes(lang.code)}
             >
@@ -163,7 +247,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => setShowAll(!showAll)}
-            className="text-ai-blue-600 hover:text-ai-blue-700"
+            className="text-primary hover:text-primary/80 transition-colors"
           >
             {showAll ? 'Show Less Languages' : `Show All ${allLanguages.length} Languages`}
           </Button>
