@@ -13,22 +13,26 @@ export const AIEnhancedPricing: React.FC<AIEnhancedPricingProps> = ({
   onSelectPlan,
   currentPlan = 'free'
 }) => {
+  const [billingPeriod, setBillingPeriod] = React.useState<'monthly' | 'yearly'>('yearly');
+
   const pricingTiers = [
     {
       id: 'professional',
       name: 'Professional',
-      originalPrice: 199.99,
-      discountedPrice: 185,
-      priceId: 'price_professional_yearly',
+      monthlyPrice: 19.99,
+      yearlyOriginalPrice: 199.99,
+      yearlyDiscountedPrice: 185,
+      priceId: billingPeriod === 'monthly' ? 'price_professional_monthly' : 'price_professional_yearly',
       icon: <Zap className="w-6 h-6" />,
       features: ['1 Website', '10,000 words/month', '10 languages', 'Basic AI agents']
     },
     {
       id: 'premium',
       name: 'Premium',
-      originalPrice: 299.99,
-      discountedPrice: 225,
-      priceId: 'price_premium_yearly',
+      monthlyPrice: 29.99,
+      yearlyOriginalPrice: 299.99,
+      yearlyDiscountedPrice: 225,
+      priceId: billingPeriod === 'monthly' ? 'price_premium_monthly' : 'price_premium_yearly',
       icon: <Star className="w-6 h-6" />,
       popular: true,
       features: ['2 Websites', '50,000 words/month', '25 languages', 'Enhanced AI + Urban Dictionary']
@@ -36,9 +40,10 @@ export const AIEnhancedPricing: React.FC<AIEnhancedPricingProps> = ({
     {
       id: 'business',
       name: 'Business',
-      originalPrice: 599.99,
-      discountedPrice: 400,
-      priceId: 'price_business_yearly',
+      monthlyPrice: 59.99,
+      yearlyOriginalPrice: 599.99,
+      yearlyDiscountedPrice: 400,
+      priceId: billingPeriod === 'monthly' ? 'price_business_monthly' : 'price_business_yearly',
       icon: <Building className="w-6 h-6" />,
       features: ['Unlimited websites', '200,000 words/month', '50+ languages', 'All AI agents + Lyra']
     }
@@ -54,6 +59,30 @@ export const AIEnhancedPricing: React.FC<AIEnhancedPricingProps> = ({
           <Crown className="w-4 h-4 mr-2" />
           50% Money-Back Guarantee
         </Badge>
+        
+        {/* Billing Period Toggle */}
+        <div className="flex items-center justify-center space-x-4 mt-6">
+          <button
+            onClick={() => setBillingPeriod('monthly')}
+            className={`px-4 py-2 rounded-lg transition-all ${
+              billingPeriod === 'monthly'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingPeriod('yearly')}
+            className={`px-4 py-2 rounded-lg transition-all ${
+              billingPeriod === 'yearly'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+            }`}
+          >
+            Yearly (Save up to 67%)
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
@@ -81,13 +110,19 @@ export const AIEnhancedPricing: React.FC<AIEnhancedPricingProps> = ({
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center justify-center space-x-2">
-                  <span className="text-lg text-gray-400 line-through">${tier.originalPrice}</span>
-                  <Badge variant="outline" className="border-red-500 text-red-300">
-                    Save ${tier.originalPrice - tier.discountedPrice}
-                  </Badge>
-                </div>
-                <div className="text-4xl font-bold text-white">${tier.discountedPrice}/year</div>
+                {billingPeriod === 'yearly' ? (
+                  <>
+                    <div className="flex items-center justify-center space-x-2">
+                      <span className="text-lg text-gray-400 line-through">${tier.yearlyOriginalPrice}</span>
+                      <Badge variant="outline" className="border-red-500 text-red-300">
+                        Save ${tier.yearlyOriginalPrice - tier.yearlyDiscountedPrice}
+                      </Badge>
+                    </div>
+                    <div className="text-4xl font-bold text-white">${tier.yearlyDiscountedPrice}/year</div>
+                  </>
+                ) : (
+                  <div className="text-4xl font-bold text-white">${tier.monthlyPrice}/month</div>
+                )}
               </div>
             </CardHeader>
 
