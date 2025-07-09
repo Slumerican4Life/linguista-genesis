@@ -189,9 +189,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
+      
+      // Enhanced error handling with specific messages
+      let title = "Authentication Error";
+      let description = error.message;
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        if (currentMode) {
+          // Login error
+          title = "Login Failed";
+          description = "The email/phone and password combination is incorrect. Please check your credentials and try again.";
+        } else {
+          // This shouldn't happen on signup, but just in case
+          title = "Signup Failed";
+          description = "There was an issue creating your account. Please try again.";
+        }
+      } else if (error.message?.includes('User already registered')) {
+        title = "Account Already Exists";
+        description = "An account with this email already exists. Please sign in instead or use a different email.";
+      } else if (error.message?.includes('Email address') && error.message?.includes('invalid')) {
+        title = "Invalid Email";
+        description = "Please enter a valid email address and try again.";
+      } else if (error.message?.includes('Password should be at least')) {
+        title = "Password Too Short";
+        description = "Your password must be at least 6 characters long.";
+      } else if (error.message?.includes('Signup is disabled')) {
+        title = "Signup Disabled";
+        description = "New account creation is currently disabled. Please contact support.";
+      } else if (error.message?.includes('Email not confirmed')) {
+        title = "Email Not Verified";
+        description = "Please check your email and click the verification link before signing in.";
+      } else if (error.message?.includes('Too many requests')) {
+        title = "Too Many Attempts";
+        description = "Too many failed attempts. Please wait a few minutes before trying again.";
+      } else if (error.message?.includes('Phone number')) {
+        title = "Invalid Phone Number";
+        description = "Please enter a valid phone number with country code (e.g., +1234567890).";
+      }
+      
       toast({
-        title: "Authentication Error",
-        description: error.message,
+        title,
+        description,
         variant: "destructive"
       });
     } finally {
