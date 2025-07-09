@@ -7,12 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, Search, Gift, Crown, Shield, Phone, Mail, Calendar, Loader2 } from 'lucide-react';
+import { Users, Search, Gift, Crown, Shield, Phone, Mail, Calendar, Loader2, Send, Activity, Eye } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
 import { GiftSubscriptionModal } from './GiftSubscriptionModal';
+import { QuickGiftModal } from './QuickGiftModal';
+import { UserAnalytics } from './UserAnalytics';
 
 type UserRole = Database['public']['Enums']['app_role'];
 type SubscriptionTier = Database['public']['Enums']['subscription_tier'];
@@ -24,6 +26,8 @@ export const EnhancedUserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [searchType, setSearchType] = useState<'email' | 'phone' | 'name'>('email');
+  const [showQuickGift, setShowQuickGift] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: users, isLoading: usersLoading } = useQuery<ProfileWithSubscription[]>({
@@ -100,13 +104,56 @@ export const EnhancedUserManagement = () => {
     }
   };
 
+  if (showAnalytics) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-purple-100">User Analytics Dashboard</h2>
+          <Button
+            onClick={() => setShowAnalytics(false)}
+            variant="outline"
+            className="border-purple-400 text-purple-300 hover:bg-purple-900/20"
+          >
+            Back to User Management
+          </Button>
+        </div>
+        <UserAnalytics />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Enhanced Header with Quick Actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-purple-100">Advanced User Management</h2>
+          <p className="text-purple-200">Complete user control, gifting, and analytics</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button
+            onClick={() => setShowQuickGift(true)}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+          >
+            <Send className="w-4 h-4 mr-2" />
+            Quick Gift
+          </Button>
+          <Button
+            onClick={() => setShowAnalytics(true)}
+            variant="outline"
+            className="border-blue-400 text-blue-300 hover:bg-blue-900/20"
+          >
+            <Activity className="w-4 h-4 mr-2" />
+            Analytics
+          </Button>
+        </div>
+      </div>
+
       <Card className="border border-purple-500/30 bg-black/60 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-purple-100">User Management & Gifting</CardTitle>
+          <CardTitle className="text-purple-100">User Database & Security Control</CardTitle>
           <CardDescription className="text-purple-200">
-            View all registered users. Search to filter, or scroll to find users and manage their roles or gift subscriptions.
+            Complete user management with advanced security features. All data is encrypted and protected with enterprise-grade security.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -219,6 +266,12 @@ export const EnhancedUserManagement = () => {
         <GiftSubscriptionModal
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
+        />
+      )}
+
+      {showQuickGift && (
+        <QuickGiftModal
+          onClose={() => setShowQuickGift(false)}
         />
       )}
     </div>
