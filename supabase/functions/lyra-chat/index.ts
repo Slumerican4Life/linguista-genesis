@@ -141,9 +141,9 @@ When selling, be confident about Linguista's superiority over Google Translate, 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // Using cheaper, faster model to avoid rate limits
+        model: 'gpt-4.1-2025-04-14', // Using latest stable model
         messages: messages,
-        max_tokens: 800,
+        max_tokens: 600,
         temperature: 0.7,
         frequency_penalty: 0.1,
         presence_penalty: 0.1,
