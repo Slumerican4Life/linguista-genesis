@@ -55,6 +55,7 @@ export const LyraOverlay = () => {
     setIsLoading(true);
 
     try {
+      console.log('Sending message to Lyra:', inputMessage);
       const { data, error } = await supabase.functions.invoke('lyra-chat', {
         body: {
           message: inputMessage,
@@ -64,6 +65,8 @@ export const LyraOverlay = () => {
           }))
         }
       });
+
+      console.log('Lyra response:', { data, error });
 
       if (error) {
         console.error('Supabase function error:', error);
