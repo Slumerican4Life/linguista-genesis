@@ -134,26 +134,57 @@ When selling, be confident about Linguista's superiority over Google Translate, 
     console.log('Sending request to OpenAI with enhanced knowledge base')
     console.log('Using OpenAI key ending with:', openaiApiKey.slice(-4))
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14', // Using latest stable model
-        messages: messages,
-        max_tokens: 600,
-        temperature: 0.7,
-        frequency_penalty: 0.1,
-        presence_penalty: 0.1,
-      }),
-    })
+    // Try with fallback models for better reliability
+    const models = ['gpt-4o-mini', 'gpt-3.5-turbo']
+    let response: Response | null = null
+    let lastError: string = ''
 
-    if (!response.ok) {
-      const errorData = await response.text()
-      console.error('OpenAI API error:', errorData)
-      throw new Error(`OpenAI API error: ${response.status}`)
+    for (const model of models) {
+      try {
+        console.log(`Attempting with model: ${model}`)
+        
+        response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: messages,
+            max_tokens: 400, // Reduced to avoid rate limits
+            temperature: 0.7,
+            frequency_penalty: 0.1,
+            presence_penalty: 0.1,
+          }),
+        })
+
+        if (response.ok) {
+          console.log(`Success with model: ${model}`)
+          break
+        }
+
+        const errorData = await response.text()
+        lastError = errorData
+        console.error(`Model ${model} failed:`, errorData)
+        
+        // If this is a rate limit error, wait briefly before trying next model
+        if (response.status === 429) {
+          console.log('Rate limit hit, waiting 2 seconds...')
+          await new Promise(resolve => setTimeout(resolve, 2000))
+        }
+        
+        response = null
+      } catch (error) {
+        console.error(`Error with model ${model}:`, error)
+        lastError = error.message
+        response = null
+      }
+    }
+
+    if (!response || !response.ok) {
+      console.error('All models failed. Last error:', lastError)
+      throw new Error(`OpenAI API error: All models failed. Last status: ${response?.status || 'unknown'}`)
     }
 
     const data = await response.json()
