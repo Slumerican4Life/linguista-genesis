@@ -17,8 +17,7 @@ serve(async (req) => {
     
     // Try multiple OpenAI API key environment variables
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY') || 
-                         Deno.env.get('Lyra-linguista-openai-api-key') ||
-                         Deno.env.get('LYRA_LINGUISTA_OPENAI_API_KEY')
+                         Deno.env.get('Lyra-linguista-openai-api-key')
     
     console.log('Available env keys:', Object.keys(Deno.env.toObject()).filter(k => k.toLowerCase().includes('openai')))
     
